@@ -1,4 +1,4 @@
-package com.ediapp.tab3
+package com.ediapp.MediRoutine
 
 import org.junit.Test
 

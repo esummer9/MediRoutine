@@ -1,7 +1,13 @@
 package com.ediapp.MediRoutine
 
+import android.app.AlarmManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -26,8 +32,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import com.ediapp.MediRoutine.ui.theme.MyApplicationTheme
+import java.util.Calendar
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,17 +54,65 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+        setAlarm()
+
         setContent {
             MyApplicationTheme {
-                MyApplicationApp()
+                MyApplicationApp(::setAlarm)
             }
         }
     }
+
+    private fun setAlarm() {
+        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (!alarmManager.canScheduleExactAlarms()) {
+                Intent().also { intent ->
+                    intent.action = Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM
+                    startActivity(intent)
+                }
+                return
+            }
+        }
+
+        val intent = Intent(this, NotificationReceiver::class.java)
+        val pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+
+        val sharedPref = getSharedPreferences("MediRoutine_prefs", Context.MODE_PRIVATE)
+        val time = sharedPref.getString("notification_time", "08:00")?.split(":")
+        val hour = time?.get(0)?.toInt() ?: 8
+        val minute = time?.get(1)?.toInt() ?: 0
+
+        val sysTime = System.currentTimeMillis()
+
+        val calendar = Calendar.getInstance().apply {
+            timeInMillis = sysTime
+            set(Calendar.HOUR_OF_DAY, hour)
+            set(Calendar.MINUTE, minute)
+
+            set(Calendar.HOUR_OF_DAY, 15)
+            set(Calendar.MINUTE, 20)
+
+            set(Calendar.SECOND, 0)
+        }
+
+        Log.d("setAlarm", "${calendar.timeInMillis} \n${sysTime}")
+
+        if (calendar.timeInMillis <= sysTime) {
+            calendar.add(Calendar.DAY_OF_YEAR, 1)
+        }
+
+        alarmManager.setRepeating(
+            AlarmManager.RTC_WAKEUP,
+            calendar.timeInMillis,
+            AlarmManager.INTERVAL_DAY,
+            pendingIntent
+        )
+    }
 }
 
-@PreviewScreenSizes
 @Composable
-fun MyApplicationApp() {
+fun MyApplicationApp(setAlarm: () -> Unit) {
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences("MediRoutine_prefs", Context.MODE_PRIVATE) }
 
@@ -80,6 +134,7 @@ fun MyApplicationApp() {
                         putBoolean("daily_report_enabled", morningEnabled)
                         apply()
                     }
+                    setAlarm()
                 }
                 currentDestination = newDestination
             }

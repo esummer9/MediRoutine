@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.ediapp.tab3"
+    namespace = "com.ediapp.MyMediRoutine"
     compileSdk {
         version = release(36)
     }
