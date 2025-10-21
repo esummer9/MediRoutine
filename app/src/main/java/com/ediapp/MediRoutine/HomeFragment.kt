@@ -4,17 +4,22 @@ import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -28,17 +33,25 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.text.SimpleDateFormat
+import java.time.DayOfWeek
+import java.time.LocalDate
+import java.time.format.TextStyle
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
 @Composable
 fun HomeFragment() {
+
     val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
     val currentDate = sdf.format(Date())
+
+    val currentMonth = SimpleDateFormat("yy.MM", Locale.getDefault()).format(Date())
+
     var showDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
     var progress by remember { mutableStateOf(getProgress(context)) }
@@ -47,21 +60,37 @@ fun HomeFragment() {
         Column(modifier = Modifier.weight(1f)) {
             Titlebar(title = "오늘")
             Text(
-                text = "Home Screen - $currentDate",
+                text = "사용기간 - $currentDate",
                 modifier = Modifier.clickable { showDialog = true }
             )
-            Box(
-                contentAlignment = Alignment.Center,
+            Column(
                 modifier = Modifier
-                    .size(100.dp)
-                    .clip(CircleShape)
-                    .background(Color.Yellow)
+                    .fillMaxWidth()
+                    .padding(16.dp)
             ) {
-                Text(
-                    text = "$progress%",
-                    fontSize = 24.sp,
-                    color = Color.Black
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(IntrinsicSize.Min),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    GridItem(modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight(), index = 0, title = currentMonth, fontSize = 18.sp)
+                    GridItem(modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight(), index = 1, title = "달성율", progress = progress)
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(IntrinsicSize.Min),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+//                    GridItem(modifier = Modifier.weight(1f).fillMaxHeight(), title = "저녁")
+//                    GridItem(modifier = Modifier.weight(1f).fillMaxHeight(), title = "취침 전")
+                }
             }
         }
 
@@ -110,6 +139,67 @@ fun HomeFragment() {
     }
 }
 
+@Composable
+fun GridItem(modifier: Modifier = Modifier, index : Int = 1, title: String, fontSize: TextUnit = 18.sp, progress: Int = 0) {
+    val context = LocalContext.current
+    Box(
+        modifier = modifier
+            .background(Color(0xFFEEEEEE), shape = RoundedCornerShape(8.dp))
+            .padding(8.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        if (index == 0) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                val today = LocalDate.now()
+                val dayOfWeek = today.dayOfWeek
+                val dayOfMonth = today.dayOfMonth.toString()
+                val dayOfWeekDisplayName = dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.KOREAN)
+
+                val color = when (dayOfWeek) {
+                    DayOfWeek.SUNDAY -> Color.Red
+                    DayOfWeek.SATURDAY -> Color.Blue
+                    else -> Color.Black
+                }
+
+                Text(text = title, fontSize = fontSize, color = color)
+                Text(text = "($dayOfWeekDisplayName)", fontSize = fontSize, color = color)
+                Text(text = dayOfMonth, fontSize = 28.sp, color = color)
+                Button(onClick = {
+                    Toast.makeText(context, "복용했습니다.", Toast.LENGTH_SHORT).show()
+                }) {
+                    Text("복용")
+                }
+            }
+        } else if (index == 1) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceAround,
+                modifier = Modifier.fillMaxHeight()
+            ) {
+                Text(text = title, fontSize = fontSize)
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .size(90.dp)
+                        .clip(CircleShape)
+                        .background(Color.Yellow)
+                ) {
+                    Text(
+                        text = "$progress%",
+                        fontSize = 28.sp,
+                        color = Color.Black
+                    )
+                }
+            }
+        } else {
+            Text(text = title, fontSize = fontSize)
+        }
+    }
+}
+
 private fun getProgress(context: Context): Int {
     val sharedPref = context.getSharedPreferences("MediRoutinePrefs", Context.MODE_PRIVATE)
     return sharedPref.getInt("progress", 100) // Default to 100
@@ -127,7 +217,7 @@ data class CalendarDay(val dayNumber: String, val fullDate: String)
 
 @Composable
 fun WeekCalendarView() {
-    val dayNames = listOf("일", "월", "화", "수", "목", "금", "토")
+
     val calendar = Calendar.getInstance()
     val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
     val context = LocalContext.current
@@ -162,7 +252,9 @@ fun WeekCalendarView() {
                     6 -> Color.Blue
                     else -> Color.Unspecified
                 }
-                Text(text = dayName, modifier = Modifier.weight(1f).padding(vertical = 8.dp), textAlign = TextAlign.Center, color = color)
+                Text(text = dayName, modifier = Modifier
+                    .weight(1f)
+                    .padding(vertical = 8.dp), textAlign = TextAlign.Center, color = color)
             }
         }
         Row(modifier = Modifier.fillMaxWidth()) {
@@ -178,7 +270,13 @@ fun WeekCalendarView() {
                         .weight(1f)
                         .padding(vertical = 8.dp)
                         .background(if (calendarDay.fullDate == today) Color.LightGray else Color.Transparent)
-                        .clickable { Toast.makeText(context, calendarDay.fullDate, Toast.LENGTH_SHORT).show() },
+                        .clickable {
+                            Toast.makeText(
+                                context,
+                                calendarDay.fullDate,
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        },
                     textAlign = TextAlign.Center,
                     color = color
                 )
@@ -197,7 +295,13 @@ fun WeekCalendarView() {
                         .weight(1f)
                         .padding(vertical = 8.dp)
                         .background(if (calendarDay.fullDate == today) Color.LightGray else Color.Transparent)
-                        .clickable { Toast.makeText(context, calendarDay.fullDate, Toast.LENGTH_SHORT).show() },
+                        .clickable {
+                            Toast.makeText(
+                                context,
+                                calendarDay.fullDate,
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        },
                     textAlign = TextAlign.Center,
                     color = color
                 )
