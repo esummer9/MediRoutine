@@ -17,7 +17,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,36 +29,25 @@ import androidx.compose.ui.unit.sp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsFragment() {
+fun SettingsFragment(
+    medName: String,
+    onMedNameChange: (String) -> Unit,
+    morningEnabled: Boolean,
+    onMorningEnabledChange: (Boolean) -> Unit,
+    selectedTime: String,
+    onSelectedTimeChange: (String) -> Unit
+) {
 
     val context = LocalContext.current
-    val prefs = remember { context.getSharedPreferences("MediRoutine_prefs", Context.MODE_PRIVATE) }
-
-    var medName by remember { mutableStateOf(prefs.getString("med_name", "") ?: "") }
-    var morningEnabled by remember { mutableStateOf(prefs.getBoolean("daily_report_enabled", false)) }
-
-    var selectedTime by remember { mutableStateOf(prefs.getString("notification_time", "08:00") ?: "06:00") }
     var expanded by remember { mutableStateOf(false) }
     val times = (6..24).map { String.format("%02d:00", it) }
-
-    DisposableEffect(Unit) {
-        onDispose {
-            with(prefs.edit()) {
-                putString("med_name", medName)
-                putString("notification_time", selectedTime)
-                putBoolean("daily_report_enabled", morningEnabled)
-                apply()
-            }
-        }
-    }
-
 
     Column(modifier = Modifier.padding(16.dp)) {
         Titlebar(title = "설정")
         Spacer(modifier = Modifier.height(16.dp))
         OutlinedTextField(
             value = medName,
-            onValueChange = { medName = it },
+            onValueChange = onMedNameChange,
             label = { Text("약이름") },
             modifier = Modifier.fillMaxWidth()
         )
@@ -95,8 +83,8 @@ fun SettingsFragment() {
                     DropdownMenuItem(
                         text = { Text(time) },
                         onClick = {
-                            selectedTime = time
-                            Toast.makeText(context, "selectedTime $selectedTime.", Toast.LENGTH_SHORT).show()
+                            onSelectedTimeChange(time)
+                            Toast.makeText(context, "selectedTime $time.", Toast.LENGTH_SHORT).show()
                             expanded = false
                         }
                     )
@@ -109,7 +97,7 @@ fun SettingsFragment() {
         MedTimeRow(
             label = "일일보고",
             checked = morningEnabled,
-            onCheckedChange = { morningEnabled = it }
+            onCheckedChange = onMorningEnabledChange
         )
 
     }
