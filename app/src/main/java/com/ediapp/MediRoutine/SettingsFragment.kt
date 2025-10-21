@@ -1,5 +1,7 @@
 package com.ediapp.MediRoutine
 
+import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -7,62 +9,109 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.ediapp.MediRoutine.R
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsFragment() {
-    var medName by remember { mutableStateOf("") }
-    var morningEnabled by remember { mutableStateOf(false) }
-    var lunchEnabled by remember { mutableStateOf(false) }
-    var dinnerEnabled by remember { mutableStateOf(false) }
-    var beforeBedEnabled by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
+    val prefs = remember { context.getSharedPreferences("MediRoutine_prefs", Context.MODE_PRIVATE) }
+
+    var medName by remember { mutableStateOf(prefs.getString("med_name", "") ?: "") }
+    var morningEnabled by remember { mutableStateOf(prefs.getBoolean("daily_report_enabled", false)) }
+
+    var selectedTime by remember { mutableStateOf(prefs.getString("notification_time", "08:00") ?: "06:00") }
+    var expanded by remember { mutableStateOf(false) }
+    val times = (6..24).map { String.format("%02d:00", it) }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            with(prefs.edit()) {
+                putString("med_name", medName)
+                putString("notification_time", selectedTime)
+                putBoolean("daily_report_enabled", morningEnabled)
+                apply()
+            }
+        }
+    }
+
 
     Column(modifier = Modifier.padding(16.dp)) {
-        Titlebar(title = stringResource(id = R.string.tab_settings))
+        Titlebar(title = "설정")
         Spacer(modifier = Modifier.height(16.dp))
         OutlinedTextField(
             value = medName,
             onValueChange = { medName = it },
-            label = { Text(stringResource(id = R.string.setting_med_name_label)) },
+            label = { Text("약이름") },
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(32.dp))
-        Text(text = stringResource(id = R.string.setting_med_time_title), fontSize = 20.sp)
+        Text(text = "시간설정", fontSize = 20.sp)
+
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = {
+                expanded = !expanded
+            }
+        ) {
+            OutlinedTextField(
+                value = selectedTime,
+                onValueChange = { },
+                label = { Text("알림시간") },
+                readOnly = true,
+                trailingIcon = {
+                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                },
+                modifier = Modifier.menuAnchor().fillMaxWidth()
+            )
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = {
+                    expanded = false
+                }
+            ) {
+                times.forEach { time ->
+                    DropdownMenuItem(
+                        text = { Text(time) },
+                        onClick = {
+                            selectedTime = time
+                            Toast.makeText(context, "selectedTime $selectedTime.", Toast.LENGTH_SHORT).show()
+                            expanded = false
+                        }
+                    )
+                }
+            }
+        }
+
         Spacer(modifier = Modifier.height(16.dp))
 
         MedTimeRow(
-            label = stringResource(id = R.string.setting_time_morning),
+            label = "일일보고",
             checked = morningEnabled,
             onCheckedChange = { morningEnabled = it }
         )
-        MedTimeRow(
-            label = stringResource(id = R.string.setting_time_lunch),
-            checked = lunchEnabled,
-            onCheckedChange = { lunchEnabled = it }
-        )
-        MedTimeRow(
-            label = stringResource(id = R.string.setting_time_dinner),
-            checked = dinnerEnabled,
-            onCheckedChange = { dinnerEnabled = it }
-        )
-        MedTimeRow(
-            label = stringResource(id = R.string.setting_time_before_bed),
-            checked = beforeBedEnabled,
-            onCheckedChange = { beforeBedEnabled = it }
-        )
+
     }
 }
 
