@@ -65,6 +65,12 @@ class MainActivity : ComponentActivity() {
 
     private fun setAlarm() {
         val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val intent = Intent(this, NotificationReceiver::class.java)
+        val pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+
+        // Cancel any existing alarms
+        alarmManager.cancel(pendingIntent)
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             if (!alarmManager.canScheduleExactAlarms()) {
                 Intent().also { intent ->
@@ -74,9 +80,6 @@ class MainActivity : ComponentActivity() {
                 return
             }
         }
-
-        val intent = Intent(this, NotificationReceiver::class.java)
-        val pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
 
         val sharedPref = getSharedPreferences("MediRoutine_prefs", Context.MODE_PRIVATE)
         val time = sharedPref.getString("notification_time", "08:00")?.split(":")
@@ -91,12 +94,12 @@ class MainActivity : ComponentActivity() {
             set(Calendar.MINUTE, minute)
 
             set(Calendar.HOUR_OF_DAY, 15)
-            set(Calendar.MINUTE, 20)
+            set(Calendar.MINUTE, 44)
 
             set(Calendar.SECOND, 0)
         }
 
-        Log.d("setAlarm", "${calendar.timeInMillis} \n${sysTime}")
+        Log.d("setAlarm", "${calendar.timeInMillis} ${sysTime}")
 
         if (calendar.timeInMillis <= sysTime) {
             calendar.add(Calendar.DAY_OF_YEAR, 1)
