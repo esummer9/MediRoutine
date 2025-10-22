@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "780155849909",
+    "project_id": "m-routine",
+    "storage_bucket": "m-routine.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:780155849909:android:e2d13a0def1e24b39b42fc",
+        "android_client_info": {
+          "package_name": "com.ediapp.MediRoutine"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDvShk-pcsDo1lwAXQwUXaH2s_peGmycQA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

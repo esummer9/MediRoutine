@@ -169,7 +169,8 @@ fun MyApplicationApp(setAlarm: () -> Unit) {
                 TopAppBar(
                     title = { Text(currentDestination.label) },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = currentDestination.color
+                        containerColor = currentDestination.color,
+                        titleContentColor = Color.White
                     )
                 )
             }
