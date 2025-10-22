@@ -95,8 +95,8 @@ class MainActivity : ComponentActivity() {
             set(Calendar.HOUR_OF_DAY, hour)
             set(Calendar.MINUTE, minute)
 
-            set(Calendar.HOUR_OF_DAY, 15)
-            set(Calendar.MINUTE, 44)
+//            set(Calendar.HOUR_OF_DAY, 15)
+//            set(Calendar.MINUTE, 44)
 
             set(Calendar.SECOND, 0)
         }
