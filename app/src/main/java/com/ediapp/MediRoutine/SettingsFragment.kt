@@ -43,7 +43,7 @@ fun SettingsFragment(
     val times = (6..24).map { String.format("%02d:00", it) }
 
     Column(modifier = Modifier.padding(16.dp)) {
-        Titlebar(title = "설정")
+//        Titlebar(title = "설정")
         Spacer(modifier = Modifier.height(16.dp))
         OutlinedTextField(
             value = medName,

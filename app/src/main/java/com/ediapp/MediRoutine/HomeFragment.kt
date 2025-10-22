@@ -58,7 +58,7 @@ fun HomeFragment() {
 
     Column(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.weight(1f)) {
-            Titlebar(title = "오늘")
+//            Titlebar(title = "오늘")
             Text(
                 text = "사용기간 - $currentDate",
                 modifier = Modifier.clickable { showDialog = true }
