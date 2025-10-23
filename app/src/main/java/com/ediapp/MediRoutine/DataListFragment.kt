@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -296,8 +297,11 @@ fun CalendarView(currentDate: Calendar, highlightedDays: List<Int>, onDayClick: 
                 Box(
                     modifier = Modifier
                         .size(40.dp)
-                        .background(if (isHighlighted) Color.LightGray else Color.Transparent, shape = CircleShape)
-                        .clickable(enabled = !isFuture) { onDayClick(day) },
+                        .padding(5.dp)
+                        .background(if (isHighlighted) Color.LightGray else Color.Transparent,
+                            shape = RoundedCornerShape(5.dp)   )
+                        .clickable(enabled = !isFuture) { onDayClick(day) }
+                        ,
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
