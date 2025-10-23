@@ -211,7 +211,7 @@ fun DataListFragment() {
                             val cal = (currentDate.clone() as Calendar).apply { set(Calendar.DAY_OF_MONTH, day) }
                             val datePrefix = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(cal.time)
 
-                            actions.filter { it.actRegisteredAt?.startsWith(datePrefix) ?: false }.forEach {
+                            actions.filter { it.actRegisteredAt!!.startsWith(datePrefix) }.forEach {
                                 dbHelper.deleteAction(it.id)
                             }
                             refetchActions()
@@ -247,6 +247,7 @@ fun CalendarView(currentDate: Calendar, highlightedDays: List<Int>, onDayClick: 
     val emptyCells = List(firstDayOfWeek) { }
 
     val dayOfWeekLabels = listOf("일", "월", "화", "수", "목", "금", "토")
+    val today = Calendar.getInstance()
 
     Column(modifier = Modifier.padding(top = 16.dp)) {
         Row(Modifier.fillMaxWidth()) {
@@ -283,16 +284,25 @@ fun CalendarView(currentDate: Calendar, highlightedDays: List<Int>, onDayClick: 
                     else -> Color.Unspecified
                 }
 
+                val cellDate = (currentDate.clone() as Calendar).apply {
+                    set(Calendar.DAY_OF_MONTH, day)
+                    set(Calendar.HOUR_OF_DAY, 0)
+                    set(Calendar.MINUTE, 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }
+                val isFuture = cellDate.after(today)
+
                 Box(
                     modifier = Modifier
                         .size(40.dp)
                         .background(if (isHighlighted) Color.LightGray else Color.Transparent, shape = CircleShape)
-                        .clickable { onDayClick(day) },
+                        .clickable(enabled = !isFuture) { onDayClick(day) },
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = day.toString(),
-                        color = textColor
+                        color = if (isFuture) Color.LightGray else textColor
                     )
                 }
             }
@@ -322,7 +332,9 @@ fun AddActionDialog(
             month = selectedMonth
             dayOfMonth = selectedDayOfMonth
         }, year, month, dayOfMonth
-    )
+    ).apply {
+        datePicker.maxDate = System.currentTimeMillis()
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -362,7 +374,11 @@ fun AddActionDialog(
                         val finalCalendar = Calendar.getInstance().apply {
                             set(year, month, dayOfMonth, finalHour, 0, 0)
                         }
-                        onConfirm(finalCalendar.time)
+                        if (finalCalendar.time.after(Date())) {
+                            Toast.makeText(context, "미래 날짜는 선택할 수 없습니다.", Toast.LENGTH_SHORT).show()
+                        } else {
+                            onConfirm(finalCalendar.time)
+                        }
                     }
                 }
             ) {
