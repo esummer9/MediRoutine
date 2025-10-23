@@ -60,7 +60,7 @@ enum class ViewType {
 @Composable
 fun DataListFragment() {
     var currentDate by remember { mutableStateOf(Calendar.getInstance()) }
-    var viewType by remember { mutableStateOf(ViewType.LIST) }
+    var viewType by remember { mutableStateOf(ViewType.CALENDAR) }
     val context = LocalContext.current
     val dbHelper = DatabaseHelper(context)
     var actions by remember { mutableStateOf<List<Action>>(emptyList()) }
