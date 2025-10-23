@@ -3,6 +3,7 @@ package com.ediapp.MediRoutine
 import android.app.DatePickerDialog
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -65,6 +66,9 @@ fun DataListFragment() {
     val dbHelper = DatabaseHelper(context)
     var actions by remember { mutableStateOf<List<Action>>(emptyList()) }
     var showDialog by remember { mutableStateOf(false) }
+    var dateForDialog by remember { mutableStateOf<Calendar?>(null) }
+    var showDeleteDayDialog by remember { mutableStateOf(false) }
+    var dayToDelete by remember { mutableStateOf<Int?>(null) }
 
     val monthFormat = remember { SimpleDateFormat("yyyy년 MM월", Locale.KOREAN) }
     val monthFormatForQuery = remember { SimpleDateFormat("yyyy-MM", Locale.getDefault()) }
@@ -80,7 +84,10 @@ fun DataListFragment() {
 
     Scaffold(
         floatingActionButton = {
-            FloatingActionButton(onClick = { showDialog = true }) {
+            FloatingActionButton(onClick = {
+                dateForDialog = null
+                showDialog = true
+            }) {
                 Icon(Icons.Filled.Add, contentDescription = "Add")
             }
         }
@@ -161,7 +168,18 @@ fun DataListFragment() {
                     }
                     CalendarView(
                         currentDate = currentDate,
-                        highlightedDays = highlightedDays
+                        highlightedDays = highlightedDays,
+                        onDayClick = { day ->
+                            if (highlightedDays.contains(day)) {
+                                dayToDelete = day
+                                showDeleteDayDialog = true
+                            } else {
+                                val clickedCalendar = currentDate.clone() as Calendar
+                                clickedCalendar.set(Calendar.DAY_OF_MONTH, day)
+                                dateForDialog = clickedCalendar
+                                showDialog = true
+                            }
+                        }
                     )
                 }
             }
@@ -170,6 +188,7 @@ fun DataListFragment() {
 
     if (showDialog) {
         AddActionDialog(
+            initialCalendar = dateForDialog,
             onDismiss = { showDialog = false },
             onConfirm = { date ->
                 val newId = dbHelper.addDoAction(date)
@@ -179,10 +198,47 @@ fun DataListFragment() {
             }
         )
     }
+
+    if (showDeleteDayDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDayDialog = false },
+            title = { Text("삭제 확인") },
+            text = { Text("정말로 이 날짜의 모든 항목을 삭제하시겠습니까?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        dayToDelete?.let { day ->
+                            val cal = (currentDate.clone() as Calendar).apply { set(Calendar.DAY_OF_MONTH, day) }
+                            val datePrefix = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(cal.time)
+
+                            actions.filter { it.actRegisteredAt?.startsWith(datePrefix) ?: false }.forEach {
+                                dbHelper.deleteAction(it.id)
+                            }
+                            refetchActions()
+                        }
+                        showDeleteDayDialog = false
+                        dayToDelete = null
+                    }
+                ) {
+                    Text("삭제")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteDayDialog = false
+                        dayToDelete = null
+                    }
+                ) {
+                    Text("취소")
+                }
+            }
+        )
+    }
 }
 
 @Composable
-fun CalendarView(currentDate: Calendar, highlightedDays: List<Int>) {
+fun CalendarView(currentDate: Calendar, highlightedDays: List<Int>, onDayClick: (Int) -> Unit) {
     val calendar = currentDate.clone() as Calendar
     calendar.set(Calendar.DAY_OF_MONTH, 1)
     val firstDayOfWeek = calendar.get(Calendar.DAY_OF_WEEK) - 1
@@ -230,7 +286,8 @@ fun CalendarView(currentDate: Calendar, highlightedDays: List<Int>) {
                 Box(
                     modifier = Modifier
                         .size(40.dp)
-                        .background(if (isHighlighted) Color.LightGray else Color.Transparent, shape = CircleShape),
+                        .background(if (isHighlighted) Color.LightGray else Color.Transparent, shape = CircleShape)
+                        .clickable { onDayClick(day) },
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -245,11 +302,12 @@ fun CalendarView(currentDate: Calendar, highlightedDays: List<Int>) {
 
 @Composable
 fun AddActionDialog(
+    initialCalendar: Calendar? = null,
     onDismiss: () -> Unit,
     onConfirm: (Date) -> Unit
 ) {
     val context = LocalContext.current
-    val calendar = remember { Calendar.getInstance() }
+    val calendar = remember { initialCalendar ?: Calendar.getInstance() }
 
     var year by remember { mutableStateOf(calendar.get(Calendar.YEAR)) }
     var month by remember { mutableStateOf(calendar.get(Calendar.MONTH)) }
