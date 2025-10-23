@@ -4,6 +4,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import android.util.Log
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -11,7 +12,9 @@ import java.util.Locale
 data class Action(
     val id: Long,
     val actType: String?,
+    val actKey: String?,
     val actValue: Int,
+    val actRegisteredAt: String?,
     val actCreatedAt: String?,
     val actDeletedAt: String?,
     val actMessage: String?,
@@ -27,11 +30,13 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         const val TABLE_NAME = "tb_actions"
         const val COL_ID = "_id"
         const val COL_ACT_TYPE = "act_type"
-        /* act_type : install, alarm, do */
+        const val COL_ACT_KEY = "act_key"
+        /* act_type : install, alarm, drug, log */
 
         const val COL_ACT_VALUE = "act_value"
-        const val COL_ACT_CREATED_AT = "act_created_at"
-        const val COL_ACT_DELETED_AT = "act_deleted_at"
+        const val COL_ACT_REGISTERED_AT = "act_registered_at"
+        const val COL_ACT_CREATED_AT = "created_at"
+        const val COL_ACT_DELETED_AT = "deleted_at"
         const val COL_ACT_MESSAGE = "act_message"
         const val COL_ACT_STATUS = "act_status"
         const val COL_ACT_REF = "act_ref"
@@ -39,7 +44,9 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         const val CREATE_ACT_TABLE = "CREATE TABLE $TABLE_NAME (" +
                 "$COL_ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "$COL_ACT_TYPE VARCHAR(50), " +
+                "$COL_ACT_KEY VARCHAR(50), " +
                 "$COL_ACT_VALUE INTEGER DEFAULT 0, " +
+                "$COL_ACT_REGISTERED_AT DATETIME DEFAULT CURRENT_TIMESTAMP, " +
                 "$COL_ACT_CREATED_AT DATETIME DEFAULT CURRENT_TIMESTAMP, " +
                 "$COL_ACT_DELETED_AT DATETIME DEFAULT NULL, " +
                 "$COL_ACT_MESSAGE VARCHAR(250), " +
@@ -51,6 +58,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         db?.execSQL(CREATE_ACT_TABLE)
         val values = ContentValues().apply {
             put(COL_ACT_TYPE, "install")
+            put(COL_ACT_KEY, "install")
             put(COL_ACT_VALUE, 1)
             put(COL_ACT_MESSAGE, "앱 설치")
             put(COL_ACT_STATUS, "complete")
@@ -62,9 +70,11 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 //        db?.execSQL("DROP TABLE IF EXISTS $TABLE_NAME")
 
         if (oldVersion < 2) {
+            Log.d("DatabaseHelper", "Upgrading database from version $oldVersion to $newVersion")
+
             // 'my_table' 테이블에 'new_column'이라는 TEXT 타입의 컬럼을 추가합니다.
             // 추가할 컬럼에 데이터가 없을 경우를 대비하여 DEFAULT 값(선택 사항)을 지정할 수 있습니다.
-            db?.execSQL("ALTER TABLE $TABLE_NAME ADD COLUMN new_column TEXT DEFAULT 'default_value';");
+//            db?.execSQL("ALTER TABLE $TABLE_NAME ADD COLUMN new_column TEXT DEFAULT 'default_value';");
         }
 
         onCreate(db)
@@ -74,15 +84,17 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         return addDoAction(Date())
     }
 
-    fun addDoAction(createdAt: Date): Long {
+    fun addDoAction(registedAt: Date): Long {
         val db = this.writableDatabase
-        val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+        val actKey = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(registedAt)
+        val actRegisteredAt = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(registedAt)
         val values = ContentValues().apply {
             put(COL_ACT_TYPE, "drug")
+            put(COL_ACT_KEY, "drug-${actKey}")
             put(COL_ACT_STATUS, "complete")
             put(COL_ACT_VALUE, 1)
             put(COL_ACT_MESSAGE, "약복용")
-            put(COL_ACT_CREATED_AT, sdf.format(createdAt))
+            put(COL_ACT_REGISTERED_AT, actRegisteredAt)
         }
         val id = db.insert(TABLE_NAME, null, values)
         db.close()
@@ -101,16 +113,23 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         return count
     }
 
-    fun getAllActions(): List<Action> {
+    fun getAllActions(month: String?, orderBy: String = COL_ID, orderDirection: String = "DESC"): List<Action> {
         val actions = mutableListOf<Action>()
         val db = this.readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM $TABLE_NAME WHERE $COL_ACT_DELETED_AT IS NULL ORDER BY $COL_ID DESC", null)
+
+        val monthSql = if (month != null) "act_registered_at LIKE '$month%' " else "1=1"
+
+        val sql = "SELECT * FROM $TABLE_NAME WHERE $monthSql AND $COL_ACT_DELETED_AT IS NULL ORDER BY $orderBy $orderDirection"
+        Log.d("DatabaseHelper", "SQL: $sql")
+        val cursor = db.rawQuery(sql, null)
         if (cursor.moveToFirst()) {
             do {
                 val action = Action(
                     id = cursor.getLong(cursor.getColumnIndexOrThrow(COL_ID)),
                     actType = cursor.getString(cursor.getColumnIndexOrThrow(COL_ACT_TYPE)),
+                    actKey = cursor.getString(cursor.getColumnIndexOrThrow(COL_ACT_KEY)),
                     actValue = cursor.getInt(cursor.getColumnIndexOrThrow(COL_ACT_VALUE)),
+                    actRegisteredAt = cursor.getString(cursor.getColumnIndexOrThrow(COL_ACT_REGISTERED_AT)),
                     actCreatedAt = cursor.getString(cursor.getColumnIndexOrThrow(COL_ACT_CREATED_AT)),
                     actDeletedAt = cursor.getString(cursor.getColumnIndexOrThrow(COL_ACT_DELETED_AT)),
                     actMessage = cursor.getString(cursor.getColumnIndexOrThrow(COL_ACT_MESSAGE)),

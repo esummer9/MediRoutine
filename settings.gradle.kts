@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "M-Routine"
+rootProject.name = "A1-Routine"
 include(":app")

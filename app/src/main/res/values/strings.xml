@@ -1,14 +1,18 @@
 <resources>
-    <string name="app_name">M-Routine</string>
-    <string name="tab_home">Home</string>
-    <string name="tab_favorites">Favorites</string>
-    <string name="tab_settings">Settings</string>
+    <string name="app_name">A1-Routine</string>
+    <string name="tab_home">홈</string>
+    <string name="tab_favorites">현황</string>
+    <string name="tab_settings">설정</string>
     <string name="setting_med_name_label">Medication Name</string>
     <string name="setting_med_time_title">Medication Times</string>
     <string name="setting_time_morning">Morning</string>
     <string name="setting_time_lunch">Lunch</string>
     <string name="setting_time_dinner">Dinner</string>
     <string name="setting_time_before_bed">Before Bed</string>
+
+    <string name="permission_dialog_title">알림권한 설정</string>
+    <string name="permission_dialog_text">정확한 알람을 위해 알림권한이 필요합니다.</string>
+    <string name="permission_dialog_confirm_button">권한 설정으로 이동</string>
 
         <!-- 예시 -->
         <!-- <string name="tab_settings">설정</string> -->

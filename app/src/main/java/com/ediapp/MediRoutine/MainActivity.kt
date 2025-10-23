@@ -8,6 +8,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.res.stringResource
+import com.ediapp.MediRoutine.R
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import android.provider.Settings
@@ -20,6 +22,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -30,25 +33,18 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
+
 import com.ediapp.MediRoutine.ui.theme.MyApplicationTheme
 import java.util.Calendar
 
-import com.ediapp.MediRoutine.R
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -140,8 +136,8 @@ fun MyApplicationApp(setAlarm: (() -> Unit) -> Unit) {
     if (showPermissionDialog) {
         AlertDialog(
             onDismissRequest = { showPermissionDialog = false },
-            title = { Text("알림권한 설정") },
-            text = { Text("정확한 알람을 위해 알림권한이 필요합니다.") },
+            title = { Text(stringResource(R.string.permission_dialog_title)) },
+            text = { Text(stringResource(R.string.permission_dialog_text)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -151,7 +147,7 @@ fun MyApplicationApp(setAlarm: (() -> Unit) -> Unit) {
                         )
                     }
                 ) {
-                    Text("권한 설정으로 이동")
+                    Text(stringResource(R.string.permission_dialog_confirm_button))
                 }
             },
 //            dismissButton = {
@@ -193,10 +189,10 @@ fun MyApplicationApp(setAlarm: (() -> Unit) -> Unit) {
                     icon = {
                         Icon(
                             it.icon,
-                            contentDescription = it.label
+                            contentDescription = stringResource(it.label)
                         )
                     },
-                    label = { Text(it.label) },
+                    label = { Text(stringResource(it.label)) },
                     selected = it == currentDestination,
                     onClick = { navigateTo(it) }
                 )
@@ -207,7 +203,7 @@ fun MyApplicationApp(setAlarm: (() -> Unit) -> Unit) {
             modifier = Modifier.fillMaxSize(),
             topBar = {
                 TopAppBar(
-                    title = { Text(currentDestination.label) },
+                    title = { Text(stringResource(currentDestination.label)) },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = currentDestination.color,
                         titleContentColor = Color.White
@@ -245,11 +241,11 @@ fun MyApplicationApp(setAlarm: (() -> Unit) -> Unit) {
 }
 
 enum class AppDestinations(
-    val label: String,
+    @StringRes val label: Int,
     val icon: ImageVector,
     val color: Color
 ) {
-    HOME("홈", Icons.Default.Home, Color(0xFF00668B)),
-    FAVORITES("데이터 목록", Icons.Default.DateRange, Color(0xFF008080)),
-    SETTINGS("설정", Icons.Default.Settings, Color(0xFF6A5ACD)),
+    HOME(R.string.tab_home, Icons.Default.Home, Color(0xFF00668B)),
+    FAVORITES(R.string.tab_favorites, Icons.Default.DateRange, Color(0xFF008080)),
+    SETTINGS(R.string.tab_settings, Icons.Default.Settings, Color(0xFF6A5ACD)),
 }
