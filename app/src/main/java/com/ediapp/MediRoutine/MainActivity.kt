@@ -35,12 +35,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import com.ediapp.MediRoutine.ui.theme.MyApplicationTheme
 import java.util.Calendar
+
+import com.ediapp.MediRoutine.R
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Getting a writable database instance will create the database and call onCreate if needed.
+        val dbHelper = DatabaseHelper(this)
+        dbHelper.writableDatabase
 
         val sharedPref = getSharedPreferences("MediRoutine_prefs", Context.MODE_PRIVATE)
         if (!sharedPref.contains("med_name")) {
@@ -136,11 +143,9 @@ fun MyApplicationApp(setAlarm: () -> Unit) {
                 if(currentDestination == AppDestinations.SETTINGS) {
                     with(prefs.edit()) {
                         putString("med_name", medName)
-                        putString("notification_time", selectedTime)
                         putBoolean("daily_report_enabled", morningEnabled)
                         apply()
                     }
-                    setAlarm()
                 }
                 currentDestination = newDestination
             }
@@ -185,7 +190,14 @@ fun MyApplicationApp(setAlarm: () -> Unit) {
                         morningEnabled = morningEnabled,
                         onMorningEnabledChange = { morningEnabled = it },
                         selectedTime = selectedTime,
-                        onSelectedTimeChange = { selectedTime = it }
+                        onSelectedTimeChange = { newTime ->
+                            selectedTime = newTime
+                            with(prefs.edit()) {
+                                putString("notification_time", newTime)
+                                apply()
+                            }
+                            setAlarm()
+                        }
                     )
                 }
             }

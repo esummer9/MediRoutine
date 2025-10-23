@@ -51,9 +51,9 @@ fun SettingsFragment(
             label = { Text("약이름") },
             modifier = Modifier.fillMaxWidth()
         )
+        Text("예시) 혈압약, 영양제 ...")
         Spacer(modifier = Modifier.height(32.dp))
         Text(text = "시간설정", fontSize = 20.sp)
-
 
         Spacer(modifier = Modifier.height(16.dp))
 
