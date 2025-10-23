@@ -2,22 +2,28 @@ package com.ediapp.MediRoutine
 
 import android.app.DatePickerDialog
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -138,13 +144,25 @@ fun DataListFragment() {
                     }
                 }
                 ViewType.CALENDAR -> {
-                    Column(
-                        modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text("달력 보기 (구현 예정)")
+                    val highlightedDays = remember(actions) {
+                        actions.mapNotNull { action ->
+                            try {
+                                val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+                                val date = dateFormat.parse(action.actRegisteredAt)
+                                date?.let {
+                                    val cal = Calendar.getInstance()
+                                    cal.time = it
+                                    cal.get(Calendar.DAY_OF_MONTH)
+                                }
+                            } catch (e: Exception) {
+                                null
+                            }
+                        }.distinct()
                     }
+                    CalendarView(
+                        currentDate = currentDate,
+                        highlightedDays = highlightedDays
+                    )
                 }
             }
         }
@@ -160,6 +178,68 @@ fun DataListFragment() {
                 showDialog = false
             }
         )
+    }
+}
+
+@Composable
+fun CalendarView(currentDate: Calendar, highlightedDays: List<Int>) {
+    val calendar = currentDate.clone() as Calendar
+    calendar.set(Calendar.DAY_OF_MONTH, 1)
+    val firstDayOfWeek = calendar.get(Calendar.DAY_OF_WEEK) - 1
+    val daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
+    val days = (1..daysInMonth).toList()
+    val emptyCells = List(firstDayOfWeek) { }
+
+    val dayOfWeekLabels = listOf("일", "월", "화", "수", "목", "금", "토")
+
+    Column(modifier = Modifier.padding(top = 16.dp)) {
+        Row(Modifier.fillMaxWidth()) {
+            dayOfWeekLabels.forEachIndexed { index, label ->
+                val color = when (index) {
+                    0 -> Color.Red
+                    6 -> Color.Blue
+                    else -> Color.Unspecified
+                }
+                Text(
+                    text = label,
+                    modifier = Modifier.weight(1f),
+                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.Bold,
+                    color = color
+                )
+            }
+        }
+
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(7),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            items(emptyCells.size) {
+                Box(modifier = Modifier.size(40.dp)) {}
+            }
+            items(days.size) { dayIndex ->
+                val day = days[dayIndex]
+                val isHighlighted = highlightedDays.contains(day)
+                val dayOfWeek = (firstDayOfWeek + dayIndex) % 7
+                val textColor = when (dayOfWeek) {
+                    0 -> Color.Red    // Sunday
+                    6 -> Color.Blue   // Saturday
+                    else -> Color.Unspecified
+                }
+
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(if (isHighlighted) Color.LightGray else Color.Transparent, shape = CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = day.toString(),
+                        color = textColor
+                    )
+                }
+            }
+        }
     }
 }
 
