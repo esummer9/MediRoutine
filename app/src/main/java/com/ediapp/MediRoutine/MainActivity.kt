@@ -140,8 +140,8 @@ fun MyApplicationApp(setAlarm: (() -> Unit) -> Unit) {
     if (showPermissionDialog) {
         AlertDialog(
             onDismissRequest = { showPermissionDialog = false },
-            title = { Text("알림 권한 필요") },
-            text = { Text("정확한 알람을 위해 알람 권한이 필요합니다.") },
+            title = { Text("알림권한 설정") },
+            text = { Text("정확한 알람을 위해 알림권한이 필요합니다.") },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -154,11 +154,11 @@ fun MyApplicationApp(setAlarm: (() -> Unit) -> Unit) {
                     Text("권한 설정으로 이동")
                 }
             },
-            dismissButton = {
-                TextButton(onClick = { showPermissionDialog = false }) {
-                    Text("취소")
-                }
-            }
+//            dismissButton = {
+//                TextButton(onClick = { showPermissionDialog = false }) {
+//                    Text("취소")
+//                }
+//            }
         )
     }
 //    val context = LocalContext.current
