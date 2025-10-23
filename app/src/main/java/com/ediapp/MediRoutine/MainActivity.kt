@@ -1,12 +1,21 @@
 package com.ediapp.MediRoutine
 
 import android.app.AlarmManager
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import android.provider.Settings
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -63,16 +72,16 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        setAlarm()
-
         setContent {
             MyApplicationTheme {
-                MyApplicationApp(::setAlarm)
+                MyApplicationApp { onPermissionRequired ->
+                    setAlarm(onPermissionRequired)
+                }
             }
         }
     }
 
-    private fun setAlarm() {
+    private fun setAlarm(onPermissionRequired: () -> Unit) {
         val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(this, NotificationReceiver::class.java)
         val pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
@@ -82,10 +91,7 @@ class MainActivity : ComponentActivity() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             if (!alarmManager.canScheduleExactAlarms()) {
-                Intent().also { intent ->
-                    intent.action = Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM
-                    startActivity(intent)
-                }
+                onPermissionRequired()
                 return
             }
         }
@@ -96,19 +102,14 @@ class MainActivity : ComponentActivity() {
         val minute = time?.get(1)?.toInt() ?: 0
 
         val sysTime = System.currentTimeMillis()
-
         val calendar = Calendar.getInstance().apply {
             timeInMillis = sysTime
             set(Calendar.HOUR_OF_DAY, hour)
             set(Calendar.MINUTE, minute)
-
-//            set(Calendar.HOUR_OF_DAY, 15)
-//            set(Calendar.MINUTE, 44)
-
             set(Calendar.SECOND, 0)
         }
 
-        Log.d("setAlarm", "${calendar.timeInMillis} ${sysTime}")
+        Log.d("setAlarm", "${calendar.timeInMillis} $sysTime")
 
         if (calendar.timeInMillis <= sysTime) {
             calendar.add(Calendar.DAY_OF_YEAR, 1)
@@ -125,8 +126,42 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MyApplicationApp(setAlarm: () -> Unit) {
+fun MyApplicationApp(setAlarm: (() -> Unit) -> Unit) {
     val context = LocalContext.current
+    var showPermissionDialog by remember { mutableStateOf(false) }
+
+    // Call setAlarm with a callback for when permission is needed
+    LaunchedEffect(Unit) {
+        setAlarm {
+            showPermissionDialog = true
+        }
+    }
+
+    if (showPermissionDialog) {
+        AlertDialog(
+            onDismissRequest = { showPermissionDialog = false },
+            title = { Text("알림 권한 필요") },
+            text = { Text("정확한 알람을 위해 알람 권한이 필요합니다.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showPermissionDialog = false
+                        context.startActivity(
+                            Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+                        )
+                    }
+                ) {
+                    Text("권한 설정으로 이동")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showPermissionDialog = false }) {
+                    Text("취소")
+                }
+            }
+        )
+    }
+//    val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences("MediRoutine_prefs", Context.MODE_PRIVATE) }
 
     var medName by rememberSaveable { mutableStateOf(prefs.getString("med_name", "") ?: "") }
@@ -196,7 +231,11 @@ fun MyApplicationApp(setAlarm: () -> Unit) {
                                 putString("notification_time", newTime)
                                 apply()
                             }
-                            setAlarm()
+                            // Set up the alarm with permission handling
+                            setAlarm {
+                                // This will be called if permission is needed
+                                showPermissionDialog = true
+                            }
                         }
                     )
                 }
