@@ -168,6 +168,7 @@ fun GridItem(modifier: Modifier = Modifier, index : Int = 1, title: String, font
                 Button(onClick = {
                     val dbHelper = DatabaseHelper(context)
                     val newId = dbHelper.addDoAction()
+
                     Toast.makeText(context, "복용했습니다. (ID: $newId)", Toast.LENGTH_SHORT).show()
                     onDrugTaken()
                 }) {

@@ -4,12 +4,16 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 data class Action(
     val id: Long,
     val actType: String?,
     val actValue: Int,
     val actCreatedAt: String?,
+    val actDeletedAt: String?,
     val actMessage: String?,
     val actStatus: String?,
     val actRef: String?
@@ -22,9 +26,9 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         private const val DATABASE_VERSION = 1
         const val TABLE_NAME = "tb_actions"
         const val COL_ID = "_id"
-        const val COL_ACT_TYPE = "act_type" 
+        const val COL_ACT_TYPE = "act_type"
         /* act_type : install, alarm, do */
-        
+
         const val COL_ACT_VALUE = "act_value"
         const val COL_ACT_CREATED_AT = "act_created_at"
         const val COL_ACT_DELETED_AT = "act_deleted_at"
@@ -67,12 +71,18 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     }
 
     fun addDoAction(): Long {
+        return addDoAction(Date())
+    }
+
+    fun addDoAction(createdAt: Date): Long {
         val db = this.writableDatabase
+        val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
         val values = ContentValues().apply {
             put(COL_ACT_TYPE, "drug")
             put(COL_ACT_STATUS, "complete")
             put(COL_ACT_VALUE, 1)
             put(COL_ACT_MESSAGE, "약복용")
+            put(COL_ACT_CREATED_AT, sdf.format(createdAt))
         }
         val id = db.insert(TABLE_NAME, null, values)
         db.close()
@@ -81,7 +91,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
     fun getDrugActionCount(): Int {
         val db = this.readableDatabase
-        val cursor = db.rawQuery("SELECT COUNT(*) FROM $TABLE_NAME WHERE $COL_ACT_TYPE = 'drug'", null)
+        val cursor = db.rawQuery("SELECT COUNT(*) FROM $TABLE_NAME WHERE $COL_ACT_TYPE = 'drug' AND $COL_ACT_DELETED_AT IS NULL", null)
         var count = 0
         if (cursor.moveToFirst()) {
             count = cursor.getInt(0)
@@ -94,7 +104,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     fun getAllActions(): List<Action> {
         val actions = mutableListOf<Action>()
         val db = this.readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM $TABLE_NAME ORDER BY $COL_ID DESC", null)
+        val cursor = db.rawQuery("SELECT * FROM $TABLE_NAME WHERE $COL_ACT_DELETED_AT IS NULL ORDER BY $COL_ID DESC", null)
         if (cursor.moveToFirst()) {
             do {
                 val action = Action(
@@ -102,6 +112,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                     actType = cursor.getString(cursor.getColumnIndexOrThrow(COL_ACT_TYPE)),
                     actValue = cursor.getInt(cursor.getColumnIndexOrThrow(COL_ACT_VALUE)),
                     actCreatedAt = cursor.getString(cursor.getColumnIndexOrThrow(COL_ACT_CREATED_AT)),
+                    actDeletedAt = cursor.getString(cursor.getColumnIndexOrThrow(COL_ACT_DELETED_AT)),
                     actMessage = cursor.getString(cursor.getColumnIndexOrThrow(COL_ACT_MESSAGE)),
                     actStatus = cursor.getString(cursor.getColumnIndexOrThrow(COL_ACT_STATUS)),
                     actRef = cursor.getString(cursor.getColumnIndexOrThrow(COL_ACT_REF))
@@ -112,5 +123,14 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         cursor.close()
         db.close()
         return actions
+    }
+
+    fun deleteAction(id: Long) {
+        val db = this.writableDatabase
+        val values = ContentValues()
+        val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+        values.put(COL_ACT_DELETED_AT, sdf.format(Date()))
+        db.update(TABLE_NAME, values, "$COL_ID = ?", arrayOf(id.toString()))
+        db.close()
     }
 }

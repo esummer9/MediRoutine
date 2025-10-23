@@ -1,5 +1,8 @@
 package com.ediapp.MediRoutine
 
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,12 +11,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,6 +32,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Locale
 
 @Composable
@@ -33,41 +40,82 @@ fun DataListFragment() {
     var searchQuery by remember { mutableStateOf("") }
     val context = LocalContext.current
     val dbHelper = DatabaseHelper(context)
-    val actions = dbHelper.getAllActions()
+    var actions by remember { mutableStateOf(dbHelper.getAllActions()) }
+    var showDialog by remember { mutableStateOf(false) }
 
-    Column(modifier = Modifier.padding(16.dp)) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+    Scaffold(
+        floatingActionButton = {
+            FloatingActionButton(onClick = { showDialog = true }) {
+                Icon(Icons.Filled.Add, contentDescription = "Add")
+            }
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .padding(paddingValues)
+                .padding(16.dp)
         ) {
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
-                label = { Text("검색 키워드") },
-                modifier = Modifier.weight(1f)
-            )
-            Button(
-                onClick = { /* TODO: Implement search action */ },
-                modifier = Modifier.padding(start = 8.dp)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("검색")
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    label = { Text("검색 키워드") },
+                    modifier = Modifier.weight(1f)
+                )
+                Button(
+                    onClick = { /* TODO: Implement search action */ },
+                    modifier = Modifier.padding(start = 8.dp)
+                ) {
+                    Text("검색")
+                }
             }
-        }
 
-        LazyColumn(modifier = Modifier.padding(top = 16.dp)) {
-            items(actions) { action ->
-                ActionCard(action)
+            LazyColumn(modifier = Modifier.padding(top = 16.dp)) {
+                items(actions) { action ->
+                    ActionCard(action) {
+                        dbHelper.deleteAction(action.id)
+                        actions = dbHelper.getAllActions()
+                    }
+                }
             }
         }
+    }
+
+    if (showDialog) {
+        val calendar = Calendar.getInstance()
+        DatePickerDialog(
+            context,
+            { _, year, month, dayOfMonth ->
+                TimePickerDialog(
+                    context,
+                    { _, hour, minute ->
+                        calendar.set(year, month, dayOfMonth, hour, minute)
+                        val newId = dbHelper.addDoAction(calendar.time)
+                        actions = dbHelper.getAllActions()
+                        Toast.makeText(context, "추가되었습니다 (ID: $newId)", Toast.LENGTH_SHORT).show()
+                        showDialog = false
+                    },
+                    calendar.get(Calendar.HOUR_OF_DAY),
+                    calendar.get(Calendar.MINUTE),
+                    false
+                ).show()
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        ).show()
     }
 }
 
 @Composable
-fun ActionCard(action: Action) {
+fun ActionCard(action: Action, onDelete: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 3.dp)
+            .padding(vertical = 4.dp)
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -84,7 +132,7 @@ fun ActionCard(action: Action) {
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.weight(1f)
                     )
-                    IconButton(onClick = { /* TODO: Implement delete */ }) {
+                    IconButton(onClick = onDelete) {
                         Icon(Icons.Filled.Delete, contentDescription = "Delete")
                     }
                 }
