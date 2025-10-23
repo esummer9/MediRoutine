@@ -218,7 +218,7 @@ fun MyApplicationApp(setAlarm: (() -> Unit) -> Unit) {
             Box(modifier = Modifier.padding(innerPadding)) {
                 when (currentDestination) {
                     AppDestinations.HOME -> HomeFragment()
-                    AppDestinations.FAVORITES -> FavoritesFragment()
+                    AppDestinations.FAVORITES -> DataListFragment()
                     AppDestinations.SETTINGS -> SettingsFragment(
                         medName = medName,
                         onMedNameChange = { medName = it },
@@ -250,6 +250,6 @@ enum class AppDestinations(
     val color: Color
 ) {
     HOME("홈", Icons.Default.Home, Color(0xFF00668B)),
-    FAVORITES("현황", Icons.Default.DateRange, Color(0xFF008080)),
+    FAVORITES("데이터 목록", Icons.Default.DateRange, Color(0xFF008080)),
     SETTINGS("설정", Icons.Default.Settings, Color(0xFF6A5ACD)),
 }

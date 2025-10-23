@@ -54,7 +54,8 @@ fun HomeFragment() {
 
     var showDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
-    var progress by remember { mutableStateOf(getProgress(context)) }
+    val dbHelper = DatabaseHelper(context)
+    var progress by remember { mutableStateOf(dbHelper.getDrugActionCount()) }
 
     Column(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.weight(1f)) {
@@ -76,7 +77,7 @@ fun HomeFragment() {
                 ) {
                     GridItem(modifier = Modifier
                         .weight(1f)
-                        .fillMaxHeight(), index = 0, title = currentMonth, fontSize = 18.sp)
+                        .fillMaxHeight(), index = 0, title = currentMonth, fontSize = 18.sp, onDrugTaken = { progress = dbHelper.getDrugActionCount() })
                     GridItem(modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight(), index = 1, title = "달성율", progress = progress)
@@ -115,9 +116,6 @@ fun HomeFragment() {
             confirmButton = {
                 TextButton(
                     onClick = {
-                        val newProgress = 0
-                        saveProgress(context, newProgress)
-                        progress = newProgress
                         Toast.makeText(context, "Yes", Toast.LENGTH_SHORT).show()
                         showDialog = false
                     }
@@ -140,7 +138,7 @@ fun HomeFragment() {
 }
 
 @Composable
-fun GridItem(modifier: Modifier = Modifier, index : Int = 1, title: String, fontSize: TextUnit = 18.sp, progress: Int = 0) {
+fun GridItem(modifier: Modifier = Modifier, index : Int = 1, title: String, fontSize: TextUnit = 18.sp, progress: Int = 0, onDrugTaken: () -> Unit = {}) {
     val context = LocalContext.current
     Box(
         modifier = modifier
@@ -168,7 +166,10 @@ fun GridItem(modifier: Modifier = Modifier, index : Int = 1, title: String, font
                 Text(text = "($dayOfWeekDisplayName)", fontSize = fontSize, color = color)
                 Text(text = dayOfMonth, fontSize = 28.sp, color = color)
                 Button(onClick = {
-                    Toast.makeText(context, "복용했습니다.", Toast.LENGTH_SHORT).show()
+                    val dbHelper = DatabaseHelper(context)
+                    val newId = dbHelper.addDoAction()
+                    Toast.makeText(context, "복용했습니다. (ID: $newId)", Toast.LENGTH_SHORT).show()
+                    onDrugTaken()
                 }) {
                     Text("복용")
                 }
@@ -197,19 +198,6 @@ fun GridItem(modifier: Modifier = Modifier, index : Int = 1, title: String, font
         } else {
             Text(text = title, fontSize = fontSize)
         }
-    }
-}
-
-private fun getProgress(context: Context): Int {
-    val sharedPref = context.getSharedPreferences("MediRoutinePrefs", Context.MODE_PRIVATE)
-    return sharedPref.getInt("progress", 100) // Default to 100
-}
-
-private fun saveProgress(context: Context, progress: Int) {
-    val sharedPref = context.getSharedPreferences("MediRoutinePrefs", Context.MODE_PRIVATE)
-    with(sharedPref.edit()) {
-        putInt("progress", progress)
-        apply()
     }
 }
 
