@@ -3,11 +3,11 @@ package com.ediapp.MediRoutine
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
@@ -58,7 +59,8 @@ fun HomeFragment() {
     var showDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val dbHelper = DatabaseHelper(context)
-    var progress by remember { mutableStateOf(dbHelper.getDrugActionCount()) }
+    var progress by remember { mutableStateOf(dbHelper.getDrugActionCount())
+}
 
     Column(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.weight(1f)) {
@@ -250,7 +252,9 @@ fun WeekCalendarView() {
                 }
                 Text(text = dayName, modifier = Modifier
                     .weight(1f)
-                    .padding(vertical = 8.dp), textAlign = TextAlign.Center, color = color)
+                    .padding(vertical = 8.dp), textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.Bold,
+                    color = color)
             }
         }
 
@@ -265,27 +269,29 @@ fun WeekCalendarView() {
                     }
                     val isTaken = actions.any { it.actRegisteredAt?.startsWith(calendarDay.fullDate) == true }
                     val backgroundColor = when {
+                        calendarDay.fullDate == today -> Color.Transparent
                         isTaken -> Color.LightGray
-                        calendarDay.fullDate == today -> Color.LightGray
                         else -> Color.Transparent
                     }
 
-                    Text(
-                        text = calendarDay.dayNumber,
+                    Box(
                         modifier = Modifier
                             .weight(1f)
-                            .padding(vertical = 8.dp)
-                            .background(backgroundColor)
-                            .clickable {
-                                Toast.makeText(
-                                    context,
-                                    calendarDay.fullDate,
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            },
-                        textAlign = TextAlign.Center,
-                        color = color
-                    )
+                            .padding(5.dp)
+                            .background(backgroundColor, shape = RoundedCornerShape(10.dp))
+                            ,
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = calendarDay.dayNumber,
+                            modifier = Modifier.padding(4.dp), // Added padding for the text itself
+                            textAlign = TextAlign.Center,
+                            fontWeight = if (calendarDay.fullDate != today) FontWeight.Normal else FontWeight.Bold,
+                            fontStyle = if (calendarDay.fullDate != today) FontStyle.Italic else FontStyle.Normal,
+                            fontSize = if (calendarDay.fullDate != today) 18.sp else 22.sp,
+                            color = color
+                        )
+                    }
                 }
             }
         }

@@ -9,21 +9,9 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-data class Action(
-    val id: Long,
-    val actType: String?,
-    val actKey: String?,
-    val actValue: Int,
-    val actRegisteredAt: String?,
-    val actCreatedAt: String?,
-    val actDeletedAt: String?,
-    val actMessage: String?,
-    val actStatus: String?,
-    val actRef: String?
-)
+import com.ediapp.MediRoutine.model.Action
 
 class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
-
     companion object {
         private const val DATABASE_NAME = "MediRoutine.db"
         private const val DATABASE_VERSION = 1
