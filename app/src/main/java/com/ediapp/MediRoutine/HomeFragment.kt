@@ -44,6 +44,8 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
+//val dayNames = listOf("일", "월", "화", "수", "목", "금", "토")
+
 @Composable
 fun HomeFragment() {
 
@@ -211,22 +213,25 @@ fun WeekCalendarView() {
     val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
     val context = LocalContext.current
     val today = sdf.format(Date())
+    val dbHelper = DatabaseHelper(context)
+    val monthFormat = SimpleDateFormat("yyyy-MM", Locale.getDefault())
+    val actions = dbHelper.getAllActions(monthFormat.format(Date()))
 
     // Current Week
     calendar.time = Date()
-    calendar.add(Calendar.WEEK_OF_YEAR, -1)
-    calendar.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY)
-    val currentWeekDays = (0..6).map {
+    calendar.add(Calendar.WEEK_OF_YEAR, -2)
+
+    val twoWeekDays = (0..13).map {
         val day = calendar.get(Calendar.DAY_OF_MONTH).toString()
         val fullDate = sdf.format(calendar.time)
         calendar.add(Calendar.DAY_OF_MONTH, 1)
         CalendarDay(day, fullDate)
     }
 
-    // Previous Week
     calendar.time = Date()
+
     calendar.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY)
-    val previousWeekDays = (0..6).map {
+    val currentWeekDays = (0..6).map {
         val day = calendar.get(Calendar.DAY_OF_MONTH).toString()
         val fullDate = sdf.format(calendar.time)
         calendar.add(Calendar.DAY_OF_MONTH, 1)
@@ -246,44 +251,28 @@ fun WeekCalendarView() {
                     .padding(vertical = 8.dp), textAlign = TextAlign.Center, color = color)
             }
         }
+        
+
         Row(modifier = Modifier.fillMaxWidth()) {
-            currentWeekDays.forEachIndexed { index, calendarDay ->
+            twoWeekDays.forEachIndexed { index, calendarDay ->
                 val color = when (index) {
                     0 -> Color.Red
                     6 -> Color.Blue
                     else -> Color.Unspecified
                 }
-                Text(
-                    text = calendarDay.dayNumber,
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(vertical = 8.dp)
-                        .background(if (calendarDay.fullDate == today) Color.LightGray else Color.Transparent)
-                        .clickable {
-                            Toast.makeText(
-                                context,
-                                calendarDay.fullDate,
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        },
-                    textAlign = TextAlign.Center,
-                    color = color
-                )
-            }
-        }
-        Row(modifier = Modifier.fillMaxWidth()) {
-            previousWeekDays.forEachIndexed { index, calendarDay ->
-                val color = when (index) {
-                    0 -> Color.Red
-                    6 -> Color.Blue
-                    else -> Color.Unspecified
+                val isTaken = actions.any { it.actRegisteredAt?.startsWith(calendarDay.fullDate) == true }
+                val backgroundColor = when {
+                    isTaken -> Color.LightGray
+                    calendarDay.fullDate == today -> Color.Yellow
+                    else -> Color.Transparent
                 }
+
                 Text(
                     text = calendarDay.dayNumber,
                     modifier = Modifier
                         .weight(1f)
                         .padding(vertical = 8.dp)
-                        .background(if (calendarDay.fullDate == today) Color.LightGray else Color.Transparent)
+                        .background(backgroundColor)
                         .clickable {
                             Toast.makeText(
                                 context,

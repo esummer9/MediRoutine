@@ -133,7 +133,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         val actions = mutableListOf<Action>()
         val db = this.readableDatabase
 
-        val monthSql = if (month != null) "act_registered_at LIKE '$month%' " else "1=1"
+        val monthSql = if (month != null) "strftime('%Y-%m', $COL_ACT_REGISTERED_AT) = '$month'" else "1=1"
 
         val sql = "SELECT * FROM $TABLE_NAME WHERE $monthSql AND $COL_ACT_DELETED_AT IS NULL ORDER BY $orderBy $orderDirection"
         Log.d("DatabaseHelper", "SQL: $sql")

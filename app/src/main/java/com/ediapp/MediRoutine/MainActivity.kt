@@ -1,23 +1,14 @@
 package com.ediapp.MediRoutine
 
 import android.app.AlarmManager
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.ui.res.stringResource
-import com.ediapp.MediRoutine.R
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
-import android.provider.Settings
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -30,21 +21,33 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.core.app.NotificationCompat
 import com.ediapp.MediRoutine.ui.theme.MyApplicationTheme
+import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
+import java.util.Locale
 
 
 class MainActivity : ComponentActivity() {
@@ -71,70 +74,23 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             MyApplicationTheme {
-                MyApplicationApp { onPermissionRequired ->
-                    setAlarm(onPermissionRequired)
+                MyApplicationApp { context, onPermissionRequired ->
+                    setAlarm(context, onPermissionRequired)
                 }
             }
         }
-    }
-
-    private fun setAlarm(onPermissionRequired: () -> Unit) {
-        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val intent = Intent(this, NotificationReceiver::class.java)
-        val pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
-
-        // Cancel any existing alarms
-        alarmManager.cancel(pendingIntent)
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            if (!alarmManager.canScheduleExactAlarms()) {
-                onPermissionRequired()
-                return
-            }
-        }
-
-        val sharedPref = getSharedPreferences("MediRoutine_prefs", Context.MODE_PRIVATE)
-        val time = sharedPref.getString("notification_time", "08:00")?.split(":")
-        val hour = time?.get(0)?.toInt() ?: 8
-        val minute = time?.get(1)?.toInt() ?: 0
-
-        val sysTime = System.currentTimeMillis()
-        val calendar = Calendar.getInstance().apply {
-            timeInMillis = sysTime
-            set(Calendar.HOUR_OF_DAY, hour)
-            set(Calendar.MINUTE, minute)
-            set(Calendar.SECOND, 0)
-
-
-//            val calendar = Calendar.getInstance()
-//            calendar.time = Date()
-//            calendar.add(Calendar.MINUTE, 1)
-        }
-
-        Log.d("setAlarm", "${calendar.timeInMillis} $sysTime")
-
-        if (calendar.timeInMillis <= sysTime) {
-            calendar.add(Calendar.DAY_OF_YEAR, 1)
-        }
-
-        alarmManager.setRepeating(
-            AlarmManager.RTC_WAKEUP,
-            calendar.timeInMillis,
-            AlarmManager.INTERVAL_DAY,
-            pendingIntent
-        )
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MyApplicationApp(setAlarm: (() -> Unit) -> Unit) {
+fun MyApplicationApp(setAlarm: (Context, () -> Unit) -> Unit) {
     val context = LocalContext.current
     var showPermissionDialog by remember { mutableStateOf(false) }
 
     // Call setAlarm with a callback for when permission is needed
     LaunchedEffect(Unit) {
-        setAlarm {
+        setAlarm(context) {
             showPermissionDialog = true
         }
     }
@@ -234,7 +190,7 @@ fun MyApplicationApp(setAlarm: (() -> Unit) -> Unit) {
                                 apply()
                             }
                             // Set up the alarm with permission handling
-                            setAlarm {
+                            setAlarm(context) {
                                 // This will be called if permission is needed
                                 showPermissionDialog = true
                             }
@@ -254,4 +210,70 @@ enum class AppDestinations(
     HOME(R.string.tab_home, Icons.Default.Home, Color(0xFF00668B)),
     FAVORITES(R.string.tab_favorites, Icons.Default.DateRange, Color(0xFF008080)),
     SETTINGS(R.string.tab_settings, Icons.Default.Settings, Color(0xFF6A5ACD)),
+}
+
+private fun setAlarm(context: Context, onPermissionRequired: () -> Unit) {
+    val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+    val intent = Intent(context, NotificationReceiver::class.java)
+    val pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+
+    // Cancel any existing alarms
+    alarmManager.cancel(pendingIntent)
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        if (!alarmManager.canScheduleExactAlarms()) {
+            onPermissionRequired()
+            return
+        }
+    }
+
+    val sharedPref = context.getSharedPreferences("MediRoutine_prefs", Context.MODE_PRIVATE)
+    val time = sharedPref.getString("notification_time", "08:00")?.split(":")
+    val hour = time?.get(0)?.toInt() ?: 8
+    val minute = time?.get(1)?.toInt() ?: 0
+
+    val sysTime = System.currentTimeMillis()
+    val calendar = Calendar.getInstance().apply {
+        timeInMillis = sysTime
+        set(Calendar.HOUR_OF_DAY, hour)
+        set(Calendar.MINUTE, minute)
+        set(Calendar.SECOND, 0)
+    }
+
+    if (calendar.timeInMillis <= sysTime) {
+        calendar.add(Calendar.DAY_OF_YEAR, 1)
+    }
+
+    alarmManager.setRepeating(
+        AlarmManager.RTC_WAKEUP,
+        calendar.timeInMillis,
+        AlarmManager.INTERVAL_DAY,
+        pendingIntent
+    )
+
+    // 즉시 알림 생성
+    val todayDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+    val dbHelper = DatabaseHelper(context)
+    if (!dbHelper.isActionExists("drug-$todayDate")) {
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val channelId = "medi_routine_channel"
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(channelId, "MediRoutine", NotificationManager.IMPORTANCE_DEFAULT)
+            notificationManager.createNotificationChannel(channel)
+        }
+
+        val notificationIntent = Intent(context, MainActivity::class.java)
+        val notificationPendingIntent = PendingIntent.getActivity(context, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE)
+
+        val notification = NotificationCompat.Builder(context, channelId)
+            .setContentTitle("약 복용 시간")
+            .setContentText("오늘 약을 복용하셨나요?")
+            .setSmallIcon(R.drawable.med_routine)
+            .setContentIntent(notificationPendingIntent)
+            .setAutoCancel(true)
+            .build()
+
+        notificationManager.notify(1, notification)
+    }
 }
