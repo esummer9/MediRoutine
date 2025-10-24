@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
@@ -251,39 +252,42 @@ fun WeekCalendarView() {
                     .padding(vertical = 8.dp), textAlign = TextAlign.Center, color = color)
             }
         }
-        
 
-        Row(modifier = Modifier.fillMaxWidth()) {
-            twoWeekDays.forEachIndexed { index, calendarDay ->
-                val color = when (index) {
-                    0 -> Color.Red
-                    6 -> Color.Blue
-                    else -> Color.Unspecified
-                }
-                val isTaken = actions.any { it.actRegisteredAt?.startsWith(calendarDay.fullDate) == true }
-                val backgroundColor = when {
-                    isTaken -> Color.LightGray
-                    calendarDay.fullDate == today -> Color.Yellow
-                    else -> Color.Transparent
-                }
+        for (range in listOf(0..6, 7..13)) {
+            Row(modifier = Modifier.fillMaxWidth()) {
+                range.forEach { index ->
+                    val calendarDay = twoWeekDays[index]
+                    val color = when (index) {
+                        0 -> Color.Red
+                        6 -> Color.Blue
+                        else -> Color.Unspecified
+                    }
+                    val isTaken = actions.any { it.actRegisteredAt?.startsWith(calendarDay.fullDate) == true }
+                    val backgroundColor = when {
+                        isTaken -> Color.LightGray
+                        calendarDay.fullDate == today -> Color.LightGray
+                        else -> Color.Transparent
+                    }
 
-                Text(
-                    text = calendarDay.dayNumber,
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(vertical = 8.dp)
-                        .background(backgroundColor)
-                        .clickable {
-                            Toast.makeText(
-                                context,
-                                calendarDay.fullDate,
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        },
-                    textAlign = TextAlign.Center,
-                    color = color
-                )
+                    Text(
+                        text = calendarDay.dayNumber,
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(vertical = 8.dp)
+                            .background(backgroundColor)
+                            .clickable {
+                                Toast.makeText(
+                                    context,
+                                    calendarDay.fullDate,
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            },
+                        textAlign = TextAlign.Center,
+                        color = color
+                    )
+                }
             }
         }
+
     }
 }
