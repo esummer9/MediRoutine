@@ -85,12 +85,18 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     }
 
     fun addDoAction(registedAt: Date): Long {
+        val actKeyDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(registedAt)
+        val actKey = "drug-${actKeyDate}"
+
+        if (isActionExists(actKey)) {
+            return -1L
+        }
+
         val db = this.writableDatabase
-        val actKey = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(registedAt)
         val actRegisteredAt = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(registedAt)
         val values = ContentValues().apply {
             put(COL_ACT_TYPE, "drug")
-            put(COL_ACT_KEY, "drug-${actKey}")
+            put(COL_ACT_KEY, actKey)
             put(COL_ACT_STATUS, "complete")
             put(COL_ACT_VALUE, 1)
             put(COL_ACT_MESSAGE, "약복용")
@@ -100,6 +106,16 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         db.close()
         return id
     }
+
+    fun isActionExists(actKey: String): Boolean {
+        val db = this.readableDatabase
+        val cursor = db.rawQuery("SELECT COUNT(*) FROM $TABLE_NAME WHERE $COL_ACT_KEY = ? AND $COL_ACT_DELETED_AT IS NULL", arrayOf(actKey))
+        val exists = if (cursor.moveToFirst()) cursor.getInt(0) > 0 else false
+        cursor.close()
+        db.close()
+        return exists
+    }
+
 
     fun getDrugActionCount(): Int {
         val db = this.readableDatabase
