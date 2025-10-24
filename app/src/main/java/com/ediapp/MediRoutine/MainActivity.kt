@@ -44,6 +44,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 
 import com.ediapp.MediRoutine.ui.theme.MyApplicationTheme
 import java.util.Calendar
+import java.util.Date
 
 
 class MainActivity : ComponentActivity() {
@@ -103,6 +104,11 @@ class MainActivity : ComponentActivity() {
             set(Calendar.HOUR_OF_DAY, hour)
             set(Calendar.MINUTE, minute)
             set(Calendar.SECOND, 0)
+
+
+//            val calendar = Calendar.getInstance()
+//            calendar.time = Date()
+//            calendar.add(Calendar.MINUTE, 1)
         }
 
         Log.d("setAlarm", "${calendar.timeInMillis} $sysTime")
