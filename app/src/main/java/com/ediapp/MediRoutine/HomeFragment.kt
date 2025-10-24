@@ -220,7 +220,8 @@ fun WeekCalendarView() {
 
     // Current Week
     calendar.time = Date()
-    calendar.add(Calendar.WEEK_OF_YEAR, -2)
+    calendar.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY)
+    calendar.add(Calendar.WEEK_OF_YEAR, -1)
 
     val twoWeekDays = (0..13).map {
         val day = calendar.get(Calendar.DAY_OF_MONTH).toString()
@@ -258,8 +259,8 @@ fun WeekCalendarView() {
                 range.forEach { index ->
                     val calendarDay = twoWeekDays[index]
                     val color = when (index) {
-                        0 -> Color.Red
-                        6 -> Color.Blue
+                        0,7 -> Color.Red
+                        6,13 -> Color.Blue
                         else -> Color.Unspecified
                     }
                     val isTaken = actions.any { it.actRegisteredAt?.startsWith(calendarDay.fullDate) == true }
