@@ -9,7 +9,6 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -176,7 +175,7 @@ fun MyApplicationApp(setAlarm: (Context, () -> Unit) -> Unit) {
             Box(modifier = Modifier.padding(innerPadding)) {
                 when (currentDestination) {
                     AppDestinations.HOME -> HomeFragment()
-                    AppDestinations.FAVORITES -> DataListFragment()
+                    AppDestinations.FAVORITES -> ListFragment()
                     AppDestinations.SETTINGS -> SettingsFragment(
                         medName = medName,
                         onMedNameChange = { medName = it },

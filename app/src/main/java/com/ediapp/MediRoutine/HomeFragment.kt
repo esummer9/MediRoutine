@@ -3,11 +3,11 @@ package com.ediapp.MediRoutine
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -46,8 +47,6 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
-//val dayNames = listOf("일", "월", "화", "수", "목", "금", "토")
-
 @Composable
 fun HomeFragment() {
 
@@ -65,10 +64,20 @@ fun HomeFragment() {
     Column(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.weight(1f)) {
 //            Titlebar(title = "오늘")
-            Text(
-                text = "사용기간 - $currentDate",
-                modifier = Modifier.clickable { showDialog = true }
-            )
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp)
+                    .background(Color.Transparent)
+            ) {
+                Text(
+                    text = "오늘",
+                    fontSize = 20.sp,
+                    color = Color.Black
+                )
+            }
+
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -170,14 +179,17 @@ fun GridItem(modifier: Modifier = Modifier, index : Int = 1, title: String, font
                 Text(text = title, fontSize = fontSize, color = color)
                 Text(text = "($dayOfWeekDisplayName)", fontSize = fontSize, color = color)
                 Text(text = dayOfMonth, fontSize = 28.sp, color = color)
-                Button(onClick = {
-                    val dbHelper = DatabaseHelper(context)
-                    val newId = dbHelper.addDoAction()
+                Button(
+                    onClick = {
+                        val dbHelper = DatabaseHelper(context)
+                        val newId = dbHelper.addDoAction()
 
-                    Toast.makeText(context, "복용했습니다. (ID: $newId)", Toast.LENGTH_SHORT).show()
-                    onDrugTaken()
-                }) {
-                    Text("복용")
+                        Toast.makeText(context, "복용했습니다. (ID: $newId)", Toast.LENGTH_SHORT).show()
+                        onDrugTaken()
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Gray) // Set button color
+                ) {
+                    Text("복용", color = Color.White) // Set text color to white
                 }
             }
         } else if (index == 1) {
@@ -269,17 +281,17 @@ fun WeekCalendarView() {
                     }
                     val isTaken = actions.any { it.actRegisteredAt?.startsWith(calendarDay.fullDate) == true }
                     val backgroundColor = when {
-                        calendarDay.fullDate == today -> Color.Transparent
                         isTaken -> Color.LightGray
+                        calendarDay.fullDate == today -> Color.Transparent
                         else -> Color.Transparent
                     }
 
                     Box(
                         modifier = Modifier
                             .weight(1f)
-                            .padding(5.dp)
+                            .padding(6.dp)
                             .background(backgroundColor, shape = RoundedCornerShape(10.dp))
-                            ,
+                            , // Add padding here
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
@@ -287,8 +299,8 @@ fun WeekCalendarView() {
                             modifier = Modifier.padding(4.dp), // Added padding for the text itself
                             textAlign = TextAlign.Center,
                             fontWeight = if (calendarDay.fullDate != today) FontWeight.Normal else FontWeight.Bold,
-                            fontStyle = if (calendarDay.fullDate != today) FontStyle.Italic else FontStyle.Normal,
                             fontSize = if (calendarDay.fullDate != today) 18.sp else 22.sp,
+                            fontStyle = if (calendarDay.fullDate != today) FontStyle.Italic else FontStyle.Normal,
                             color = color
                         )
                     }
