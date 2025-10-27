@@ -39,6 +39,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ediapp.MediRoutine.model.Action
+//import androidx.preference.forEachIndexed
 import java.text.SimpleDateFormat
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -46,6 +48,10 @@ import java.time.format.TextStyle
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+
+
+// Day of week names for calendar header
+//val dayNames = listOf("일", "월", "화", "수", "목", "금", "토")
 
 @Composable
 fun HomeFragment() {
@@ -57,14 +63,15 @@ fun HomeFragment() {
 
     var showDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
-    val dbHelper = DatabaseHelper(context)
-    var progress by remember { mutableStateOf(dbHelper.getDrugActionCount())
-}
+    val dbHelper = remember { DatabaseHelper(context) }
+    var progress by remember { mutableStateOf(dbHelper.getDrugActionCount()) }
+
+    // 1. 복용 기록 상태를 HomeFragment 최상단으로 이동
+    val monthFormat = SimpleDateFormat("yyyy-MM", Locale.getDefault())
+    var actions by remember { mutableStateOf(dbHelper.getAllActions(monthFormat.format(Date()))) }
 
     Column(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.weight(1f)) {
-//            Titlebar(title = "오늘")
-
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -89,12 +96,30 @@ fun HomeFragment() {
                         .height(IntrinsicSize.Min),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    GridItem(modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight(), index = 0, title = currentMonth, fontSize = 18.sp, onDrugTaken = { progress = dbHelper.getDrugActionCount() })
-                    GridItem(modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight(), index = 1, title = "달성율", progress = progress)
+                    // 3. onDrugTaken 람다에서 상태 업데이트
+                    GridItem(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight(),
+                        index = 0,
+                        title = currentMonth,
+                        fontSize = 18.sp,
+                        onDrugTaken = {
+                            val newId = dbHelper.addDoAction()
+                            Toast.makeText(context, "복용했습니다. (ID: $newId)", Toast.LENGTH_SHORT).show()
+                            progress = dbHelper.getDrugActionCount()
+                            // 복용 기록 상태를 DB에서 다시 불러와 갱신
+                            actions = dbHelper.getAllActions(monthFormat.format(Date()))
+                        }
+                    )
+                    GridItem(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight(),
+                        index = 1,
+                        title = "달성율",
+                        progress = progress
+                    )
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 Row(
@@ -103,8 +128,7 @@ fun HomeFragment() {
                         .height(IntrinsicSize.Min),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-//                    GridItem(modifier = Modifier.weight(1f).fillMaxHeight(), title = "저녁")
-//                    GridItem(modifier = Modifier.weight(1f).fillMaxHeight(), title = "취침 전")
+                    // GridItem 추가 영역
                 }
             }
         }
@@ -118,7 +142,8 @@ fun HomeFragment() {
         )
 
         Column(modifier = Modifier.weight(1f)) {
-            WeekCalendarView()
+            // 2. WeekCalendarView에 상태(actions)를 파라미터로 전달
+            WeekCalendarView(actions = actions)
         }
     }
 
@@ -153,7 +178,6 @@ fun HomeFragment() {
 
 @Composable
 fun GridItem(modifier: Modifier = Modifier, index : Int = 1, title: String, fontSize: TextUnit = 18.sp, progress: Int = 0, onDrugTaken: () -> Unit = {}) {
-    val context = LocalContext.current
     Box(
         modifier = modifier
             .background(Color(0xFFEEEEEE), shape = RoundedCornerShape(8.dp))
@@ -180,13 +204,7 @@ fun GridItem(modifier: Modifier = Modifier, index : Int = 1, title: String, font
                 Text(text = "($dayOfWeekDisplayName)", fontSize = fontSize, color = color)
                 Text(text = dayOfMonth, fontSize = 28.sp, color = color)
                 Button(
-                    onClick = {
-                        val dbHelper = DatabaseHelper(context)
-                        val newId = dbHelper.addDoAction()
-
-                        Toast.makeText(context, "복용했습니다. (ID: $newId)", Toast.LENGTH_SHORT).show()
-                        onDrugTaken()
-                    },
+                    onClick = onDrugTaken,
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Gray) // Set button color
                 ) {
                     Text("복용", color = Color.White) // Set text color to white
@@ -221,16 +239,13 @@ fun GridItem(modifier: Modifier = Modifier, index : Int = 1, title: String, font
 
 data class CalendarDay(val dayNumber: String, val fullDate: String)
 
+// 2. WeekCalendarView가 actions를 파라미터로 받도록 수정
 @Composable
-fun WeekCalendarView() {
+fun WeekCalendarView(actions: List<Action>) {
 
     val calendar = Calendar.getInstance()
     val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-    val context = LocalContext.current
     val today = sdf.format(Date())
-    val dbHelper = DatabaseHelper(context)
-    val monthFormat = SimpleDateFormat("yyyy-MM", Locale.getDefault())
-    val actions = dbHelper.getAllActions(monthFormat.format(Date()))
 
     // Current Week
     calendar.time = Date()
@@ -238,16 +253,6 @@ fun WeekCalendarView() {
     calendar.add(Calendar.WEEK_OF_YEAR, -1)
 
     val twoWeekDays = (0..13).map {
-        val day = calendar.get(Calendar.DAY_OF_MONTH).toString()
-        val fullDate = sdf.format(calendar.time)
-        calendar.add(Calendar.DAY_OF_MONTH, 1)
-        CalendarDay(day, fullDate)
-    }
-
-    calendar.time = Date()
-
-    calendar.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY)
-    val currentWeekDays = (0..6).map {
         val day = calendar.get(Calendar.DAY_OF_MONTH).toString()
         val fullDate = sdf.format(calendar.time)
         calendar.add(Calendar.DAY_OF_MONTH, 1)
@@ -274,15 +279,15 @@ fun WeekCalendarView() {
             Row(modifier = Modifier.fillMaxWidth()) {
                 range.forEach { index ->
                     val calendarDay = twoWeekDays[index]
-                    val color = when (index) {
-                        0,7 -> Color.Red
-                        6,13 -> Color.Blue
+                    val color = when (index % 7) { // Corrected modulo logic for day color
+                        0 -> Color.Red
+                        6 -> Color.Blue
                         else -> Color.Unspecified
                     }
+                    // 파라미터로 받은 actions 사용
                     val isTaken = actions.any { it.actRegisteredAt?.startsWith(calendarDay.fullDate) == true }
                     val backgroundColor = when {
                         isTaken -> Color.LightGray
-                        calendarDay.fullDate == today -> Color.Transparent
                         else -> Color.Transparent
                     }
 
@@ -291,15 +296,15 @@ fun WeekCalendarView() {
                             .weight(1f)
                             .padding(6.dp)
                             .background(backgroundColor, shape = RoundedCornerShape(10.dp))
-                            , // Add padding here
+                        ,
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = calendarDay.dayNumber,
-                            modifier = Modifier.padding(4.dp), // Added padding for the text itself
+                            modifier = Modifier.padding(4.dp),
                             textAlign = TextAlign.Center,
                             fontWeight = if (calendarDay.fullDate != today) FontWeight.Normal else FontWeight.Bold,
-                            fontSize = if (calendarDay.fullDate != today) 18.sp else 22.sp,
+                            fontSize = if (calendarDay.fullDate != today) 18.sp else 19.sp,
                             fontStyle = if (calendarDay.fullDate != today) FontStyle.Italic else FontStyle.Normal,
                             color = color
                         )
@@ -307,6 +312,5 @@ fun WeekCalendarView() {
                 }
             }
         }
-
     }
 }
