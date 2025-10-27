@@ -20,12 +20,16 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -57,7 +61,7 @@ class MainActivity : ComponentActivity() {
         val sharedPref = getSharedPreferences("MediRoutine_prefs", Context.MODE_PRIVATE)
         if (!sharedPref.contains("med_name")) {
             with(sharedPref.edit()) {
-                putString("med_name", "약이름입력")
+                putString("med_name", "**약")
                 apply()
             }
         }
@@ -195,7 +199,22 @@ fun MyApplicationApp() {
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = currentDestination.color,
                         titleContentColor = Color.White
-                    )
+                    ),
+                    // 여기에 메뉴 아이템을 추가합니다.
+                    actions = {
+                        // 설정 메뉴 아이템
+                        IconButton(onClick = { /* 설정 화면으로 이동하는 로직 */
+                            val intent = Intent(context, SettingsActivity::class.java)
+                            context.startActivity(intent)
+
+                        }) {
+                            Icon(Icons.Filled.Settings, contentDescription = "Settings")
+                        }
+                        // 백업 메뉴 아이템
+                        IconButton(onClick = { /* 백업 기능 실행 로직 */ }) {
+                            Icon(Icons.Filled.CheckCircle, contentDescription = "Backup") // Backup 아이콘이 없다면 다른 아이콘 사용
+                        }
+                    }
                 )
             }
         ) { innerPadding ->
@@ -203,20 +222,7 @@ fun MyApplicationApp() {
                 when (currentDestination) {
                     AppDestinations.HOME -> HomeFragment()
                     AppDestinations.FAVORITES -> ListFragment()
-                    AppDestinations.SETTINGS -> SettingsFragment(
-                        medName = medName,
-                        onMedNameChange = { medName = it },
-                        morningEnabled = morningEnabled,
-                        onMorningEnabledChange = { morningEnabled = it },
-                        selectedTime = selectedTime,
-                        onSelectedTimeChange = { newTime ->
-                            selectedTime = newTime
-                            with(prefs.edit()) {
-                                putString("notification_time", newTime)
-                                apply()
-                            }
-                        }
-                    )
+                    AppDestinations.SETTINGS -> HelpsFragment()
                 }
             }
         }
@@ -230,5 +236,5 @@ enum class AppDestinations(
 ) {
     HOME(R.string.tab_home, Icons.Default.Home, Color(0xFF00668B)),
     FAVORITES(R.string.tab_favorites, Icons.Default.DateRange, Color(0xFF008080)),
-    SETTINGS(R.string.tab_settings, Icons.Default.Settings, Color(0xFF6A5ACD)),
+    SETTINGS(R.string.tab_helps, Icons.Default.Info, Color(0xFF8BC34A)),
 }

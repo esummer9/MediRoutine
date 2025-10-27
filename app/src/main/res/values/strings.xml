@@ -2,6 +2,7 @@
     <string name="app_name">A1-Routine</string>
     <string name="tab_home">홈</string>
     <string name="tab_favorites">현황</string>
+    <string name="tab_helps">도움말</string>
     <string name="tab_settings">설정</string>
     <string name="setting_med_name_label">Medication Name</string>
     <string name="setting_med_time_title">Medication Times</string>
