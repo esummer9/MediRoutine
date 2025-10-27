@@ -160,10 +160,10 @@ fun MyApplicationApp() {
 
     val navigateTo: (AppDestinations) -> Unit = {
         newDestination ->
-//            if (currentDestination == AppDestinations.SETTINGS && medName.length < 2) {
+//            if (currentDestination == AppDestinations.HELPS && medName.length < 2) {
 //                Toast.makeText(context, "약 이름은 2글자 이상 입력해주세요.", Toast.LENGTH_SHORT).show()
 //            } else {
-                if(currentDestination == AppDestinations.SETTINGS) {
+                if(currentDestination == AppDestinations.HELPS) {
 //                    with(prefs.edit()) {
 //                        putString("med_name", medName)
 //                        putBoolean("daily_report_enabled", morningEnabled)
@@ -221,8 +221,8 @@ fun MyApplicationApp() {
             Box(modifier = Modifier.padding(innerPadding)) {
                 when (currentDestination) {
                     AppDestinations.HOME -> HomeFragment()
-                    AppDestinations.FAVORITES -> ListFragment()
-                    AppDestinations.SETTINGS -> HelpsFragment()
+                    AppDestinations.LISTS -> ListFragment()
+                    AppDestinations.HELPS -> HelpsFragment()
                 }
             }
         }
@@ -235,6 +235,6 @@ enum class AppDestinations(
     val color: Color
 ) {
     HOME(R.string.tab_home, Icons.Default.Home, Color(0xFF00668B)),
-    FAVORITES(R.string.tab_favorites, Icons.Default.DateRange, Color(0xFF008080)),
-    SETTINGS(R.string.tab_helps, Icons.Default.Info, Color(0xFF8BC34A)),
+    LISTS(R.string.tab_favorites, Icons.Default.DateRange, Color(0xFF008080)),
+    HELPS(R.string.tab_helps, Icons.Default.Info, Color(0xFF8BC34A)),
 }
