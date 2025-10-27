@@ -159,19 +159,19 @@ fun MyApplicationApp() {
     var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.HOME) }
 
     val navigateTo: (AppDestinations) -> Unit = {
-        newDestination ->
-            if (currentDestination == AppDestinations.SETTINGS && medName.length < 2) {
-                Toast.makeText(context, "약 이름은 2글자 이상 입력해주세요.", Toast.LENGTH_SHORT).show()
-            } else {
-                if(currentDestination == AppDestinations.SETTINGS) {
-                    with(prefs.edit()) {
-                        putString("med_name", medName)
-                        putBoolean("daily_report_enabled", morningEnabled)
-                        apply()
-                    }
-                }
-                currentDestination = newDestination
-            }
+//        newDestination ->
+//            if (currentDestination == AppDestinations.SETTINGS && medName.length < 2) {
+//                Toast.makeText(context, "약 이름은 2글자 이상 입력해주세요.", Toast.LENGTH_SHORT).show()
+//            } else {
+//                if(currentDestination == AppDestinations.SETTINGS) {
+//                    with(prefs.edit()) {
+//                        putString("med_name", medName)
+//                        putBoolean("daily_report_enabled", morningEnabled)
+//                        apply()
+//                    }
+//                }
+//                currentDestination = newDestination
+//            }
     }
 
     NavigationSuiteScaffold(
@@ -208,11 +208,11 @@ fun MyApplicationApp() {
                             context.startActivity(intent)
 
                         }) {
-                            Icon(Icons.Filled.Settings, contentDescription = "Settings")
+                            Icon(Icons.Filled.Settings, contentDescription = "Settings", tint = Color.White)
                         }
                         // 백업 메뉴 아이템
                         IconButton(onClick = { /* 백업 기능 실행 로직 */ }) {
-                            Icon(Icons.Filled.CheckCircle, contentDescription = "Backup") // Backup 아이콘이 없다면 다른 아이콘 사용
+                            Icon(Icons.Filled.CheckCircle, contentDescription = "Backup", tint = Color.White) // Backup 아이콘이 없다면 다른 아이콘 사용
                         }
                     }
                 )

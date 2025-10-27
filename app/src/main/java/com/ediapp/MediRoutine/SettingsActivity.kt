@@ -2,7 +2,6 @@ package com.ediapp.MediRoutine
 
 import android.app.Activity
 import android.content.Context
-import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.widget.Toast
@@ -11,7 +10,6 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Settings // Settings 아이콘은 필요 없으므로 제거하거나 그대로 두어도 됩니다.
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
@@ -26,28 +24,56 @@ import androidx.compose.ui.unit.sp
 import com.ediapp.MediRoutine.ui.theme.MyApplicationTheme
 
 class SettingsActivity : ComponentActivity() {
+
+    private lateinit var prefs: SharedPreferences
+    private var medName by mutableStateOf("")
+    private var morningEnabled by mutableStateOf(false)
+    private var selectedTime by mutableStateOf("08:00")
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        prefs = applicationContext.getSharedPreferences("MediRoutine_prefs", Context.MODE_PRIVATE)
+
+        // Load initial settings from SharedPreferences
+        medName = prefs.getString("med_name", "") ?: ""
+        morningEnabled = prefs.getBoolean("daily_report_enabled", false)
+        selectedTime = prefs.getString("notification_time", "08:00") ?: "08:00"
+
         setContent {
             MyApplicationTheme {
-                SettingsScreen()
+                SettingsScreen(
+                    medName = medName,
+                    morningEnabled = morningEnabled,
+                    selectedTime = selectedTime,
+                    onMedNameChange = { medName = it },
+                    onMorningEnabledChange = { morningEnabled = it },
+                    onSelectedTimeChange = { selectedTime = it }
+                )
             }
         }
     }
+
+    override fun onStop() {
+        saveSettings(prefs, medName, morningEnabled, selectedTime)
+        super.onStop()
+    }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen() {
+fun SettingsScreen(medName: String,
+                   morningEnabled: Boolean,
+                   selectedTime: String,
+                   onMedNameChange: (String) -> Unit,
+                   onMorningEnabledChange: (Boolean) -> Unit,
+                   onSelectedTimeChange: (String) -> Unit) {
     val context = LocalContext.current
     // SharedPreferences 인스턴스 가져오기 (MainActivity와 동일한 키 사용)
     val prefs = remember { context.getSharedPreferences("MediRoutine_prefs", Context.MODE_PRIVATE) }
 
-    // SettingsFragment에서 사용하던 상태 변수들을 rememberSaveable로 관리
-    // 초기값을 SharedPreferences에서 불러옵니다.
-    var medName by rememberSaveable { mutableStateOf(prefs.getString("med_name", "") ?: "") }
-    var morningEnabled by rememberSaveable { mutableStateOf(prefs.getBoolean("daily_report_enabled", false)) }
-    var selectedTime by rememberSaveable { mutableStateOf(prefs.getString("notification_time", "08:00") ?: "08:00") }
 
     Scaffold(
         topBar = {
@@ -64,7 +90,7 @@ fun SettingsScreen() {
                         // Activity 종료
                         (context as? Activity)?.finish()
                     }) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
                     }
                 }
             )
@@ -76,13 +102,10 @@ fun SettingsScreen() {
                 .padding(paddingValues)
                 .padding(16.dp)
         ) {
-            // SettingsFragment의 UI 요소들을 여기에 배치
             Spacer(modifier = Modifier.height(16.dp))
             OutlinedTextField(
                 value = medName,
-                onValueChange = { newMedName ->
-                    medName = newMedName
-                },
+                onValueChange = onMedNameChange, // Use the callback to update state
                 label = { Text("약이름") },
                 modifier = Modifier.fillMaxWidth()
             )
@@ -92,7 +115,6 @@ fun SettingsScreen() {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // ExposedDropdownMenuBox 로직
             var expanded by remember { mutableStateOf(false) }
             val times = (6..24).map { String.format("%02d:00", it) }
 
@@ -116,7 +138,7 @@ fun SettingsScreen() {
                         DropdownMenuItem(
                             text = { Text(time) },
                             onClick = {
-                                selectedTime = time
+                                onSelectedTimeChange(time) // Use the callback to update state
                                 Toast.makeText(context, "selectedTime $time.", Toast.LENGTH_SHORT).show()
                                 expanded = false
                             }
@@ -127,13 +149,10 @@ fun SettingsScreen() {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // MedTimeRow 컴포저블 재사용
-            MedTimeRow2(
+            MedTimeRow(
                 label = "일일보고",
                 checked = morningEnabled,
-                onCheckedChange = {
-                    morningEnabled = it
-                }
+                onCheckedChange = onMorningEnabledChange // Use the callback to update state
             )
         }
     }
@@ -141,7 +160,7 @@ fun SettingsScreen() {
 
 // MedTimeRow 컴포저블은 그대로 유지 (SettingsFragment.kt에서 복사하거나, 동일 파일 내에 정의)
 @Composable
-fun MedTimeRow2(label: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+fun MedTimeRow(label: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -155,7 +174,7 @@ fun MedTimeRow2(label: String, checked: Boolean, onCheckedChange: (Boolean) -> U
 }
 
 // 변경사항을 SharedPreferences에 저장하는 함수
-fun saveSettings(prefs: SharedPreferences, medName: String, morningEnabled: Boolean, selectedTime: String) {
+fun saveSettings(prefs: SharedPreferences, medName: String?, morningEnabled: Boolean, selectedTime: String?) {
     with(prefs.edit()) {
         putString("med_name", medName)
         putBoolean("daily_report_enabled", morningEnabled)
