@@ -194,7 +194,7 @@ fun ListFragment() {
             onConfirm = { date ->
                 val newId = dbHelper.addDoAction(date)
                 refetchActions()
-                Toast.makeText(context, "추가되었습니다 (ID: $newId)", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "추가 되었습니다 (ID: $newId)", Toast.LENGTH_SHORT).show()
                 showDialog = false
             }
         )
@@ -204,7 +204,7 @@ fun ListFragment() {
         AlertDialog(
             onDismissRequest = { showDeleteDayDialog = false },
             title = { Text("삭제 확인") },
-            text = { Text("정말로 이 날짜의 모든 항목을 삭제하시겠습니까?") },
+            text = { Text("정말로 이 항목을 삭제 하시겠습니까?") },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -439,7 +439,7 @@ fun ActionCard(action: Action, onDelete: () -> Unit) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirmDialog = false },
             title = { Text("삭제 확인") },
-            text = { Text("정말로 이 항목을 삭제하시겠습니까?") },
+            text = { Text("정말로 이 항목을 삭제 하시겠습니까?") },
             confirmButton = {
                 TextButton(
                     onClick = {

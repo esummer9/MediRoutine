@@ -30,16 +30,22 @@ object NotificationHelper {
         }
         val deletePendingIntent = PendingIntent.getBroadcast(context, 1, deleteIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
 
-        val notification = NotificationCompat.Builder(context, "medi_routine_channel")
+        var notification = NotificationCompat.Builder(context, "medi_routine_channel")
             .setSmallIcon(R.drawable.med_routine)
             .setContentTitle("$dateString 약 복용")
             .setContentText("약 복용 수: $drugActionCount")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setOngoing(true)
             .addAction(R.drawable.med_routine, "복용", pendingIntent)
-
             .setDeleteIntent(deletePendingIntent)
             .build()
+
+        if (drugActionCount < 1) {
+            notificationManager.notify(1, notification)
+        } else {
+            notificationManager.notify(1, notification)
+        }
+
 
         notificationManager.notify(1, notification)
     }
