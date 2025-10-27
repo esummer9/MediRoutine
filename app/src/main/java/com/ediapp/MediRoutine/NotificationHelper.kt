@@ -25,6 +25,11 @@ object NotificationHelper {
         }
         val pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
 
+        val deleteIntent = Intent(context, NotificationActionReceiver::class.java).apply {
+            action = "com.ediapp.MediRoutine.ACTION_NOTIFICATION_DISMISSED"
+        }
+        val deletePendingIntent = PendingIntent.getBroadcast(context, 1, deleteIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+
         val notification = NotificationCompat.Builder(context, "medi_routine_channel")
             .setSmallIcon(R.drawable.med_routine)
             .setContentTitle("$dateString 약 복용")
@@ -32,6 +37,8 @@ object NotificationHelper {
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setOngoing(true)
             .addAction(R.drawable.med_routine, "복용", pendingIntent)
+
+            .setDeleteIntent(deletePendingIntent)
             .build()
 
         notificationManager.notify(1, notification)

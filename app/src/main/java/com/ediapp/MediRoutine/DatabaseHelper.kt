@@ -106,15 +106,13 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
 
     fun getDrugActionCount(): Int {
-        val db = this.readableDatabase
-        val cursor = db.rawQuery("SELECT COUNT(*) FROM $TABLE_NAME WHERE $COL_ACT_TYPE = 'drug' AND $COL_ACT_DELETED_AT IS NULL", null)
-        var count = 0
-        if (cursor.moveToFirst()) {
-            count = cursor.getInt(0)
-        }
-        cursor.close()
-        db.close()
-        return count
+        val actKeyDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val actKey = "drug-${actKeyDate}"
+
+        if (isActionExists(actKey)) {
+            return 1
+        } else
+            return 0
     }
 
     fun getAllActions(month: String?, orderBy: String = COL_ID, orderDirection: String = "DESC"): List<Action> {

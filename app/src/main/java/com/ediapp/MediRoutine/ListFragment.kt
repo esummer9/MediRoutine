@@ -49,6 +49,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -348,10 +349,12 @@ fun AddActionDialog(
         text = {
             Column {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "$year-${month + 1}-$dayOfMonth")
+                    Text(text = "$year-${month + 1}-$dayOfMonth",
+                        fontWeight = FontWeight.Bold, fontSize=20.sp)
+
                     Spacer(modifier = Modifier.width(8.dp))
                     Button(onClick = { datePickerDialog.show() }) {
-                        Text("날짜 변경")
+                        Text("날짜 변경", color = Color.White)
                     }
                 }
                 Spacer(modifier = Modifier.height(8.dp))

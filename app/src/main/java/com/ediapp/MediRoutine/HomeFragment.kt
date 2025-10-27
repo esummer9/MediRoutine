@@ -24,6 +24,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,12 +34,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import com.ediapp.MediRoutine.model.Action
 //import androidx.preference.forEachIndexed
 import java.text.SimpleDateFormat
@@ -50,14 +54,11 @@ import java.util.Date
 import java.util.Locale
 
 
-// Day of week names for calendar header
-//val dayNames = listOf("일", "월", "화", "수", "목", "금", "토")
-
 @Composable
 fun HomeFragment() {
 
     val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-    val currentDate = sdf.format(Date())
+//    val currentDate = sdf.format(Date())
 
     val currentMonth = SimpleDateFormat("yy.MM", Locale.getDefault()).format(Date())
 
@@ -69,6 +70,20 @@ fun HomeFragment() {
     // 1. 복용 기록 상태를 HomeFragment 최상단으로 이동
     val monthFormat = SimpleDateFormat("yyyy-MM", Locale.getDefault())
     var actions by remember { mutableStateOf(dbHelper.getAllActions(monthFormat.format(Date()))) }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                actions = dbHelper.getAllActions(monthFormat.format(Date()))
+                progress = dbHelper.getDrugActionCount()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
 
     Column(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.weight(1f)) {
