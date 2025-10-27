@@ -1,10 +1,8 @@
 package com.ediapp.MediRoutine
 
 import android.Manifest
-import android.app.AlarmManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -47,7 +45,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat
 import com.ediapp.MediRoutine.ui.theme.MyApplicationTheme
-import java.util.Calendar
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -74,11 +71,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             MyApplicationTheme {
-                MyApplicationApp(
-                    setAlarm = { context, onPermissionRequired ->
-                        setAlarm(context, onPermissionRequired)
-                    }
-                )
+                MyApplicationApp()
             }
         }
     }
@@ -100,9 +93,7 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MyApplicationApp(
-    setAlarm: (Context, () -> Unit) -> Unit
-) {
+fun MyApplicationApp() {
     val context = LocalContext.current
     var showPermissionDialog by remember { mutableStateOf(false) }
 
@@ -127,10 +118,6 @@ fun MyApplicationApp(
             }
         } else {
             NotificationHelper.showNotification(context)
-        }
-
-        setAlarm(context) {
-            showPermissionDialog = true
         }
     }
 
@@ -222,9 +209,6 @@ fun MyApplicationApp(
                                 putString("notification_time", newTime)
                                 apply()
                             }
-                            setAlarm(context) {
-                                showPermissionDialog = true
-                            }
                         }
                     )
                 }
@@ -241,43 +225,4 @@ enum class AppDestinations(
     HOME(R.string.tab_home, Icons.Default.Home, Color(0xFF00668B)),
     FAVORITES(R.string.tab_favorites, Icons.Default.DateRange, Color(0xFF008080)),
     SETTINGS(R.string.tab_settings, Icons.Default.Settings, Color(0xFF6A5ACD)),
-}
-
-private fun setAlarm(context: Context, onPermissionRequired: () -> Unit) {
-    val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-    val intent = Intent(context, NotificationReceiver::class.java)
-    val pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
-
-    alarmManager.cancel(pendingIntent)
-
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        if (!alarmManager.canScheduleExactAlarms()) {
-            onPermissionRequired()
-            return
-        }
-    }
-
-    val sharedPref = context.getSharedPreferences("MediRoutine_prefs", Context.MODE_PRIVATE)
-    val time = sharedPref.getString("notification_time", "08:00")?.split(":")
-    val hour = time?.get(0)?.toInt() ?: 8
-    val minute = time?.get(1)?.toInt() ?: 0
-
-    val sysTime = System.currentTimeMillis()
-    val calendar = Calendar.getInstance().apply {
-        timeInMillis = sysTime
-        set(Calendar.HOUR_OF_DAY, hour)
-        set(Calendar.MINUTE, minute)
-        set(Calendar.SECOND, 0)
-    }
-
-    if (calendar.timeInMillis <= sysTime) {
-        calendar.add(Calendar.DAY_OF_YEAR, 1)
-    }
-
-    alarmManager.setRepeating(
-        AlarmManager.RTC_WAKEUP,
-        calendar.timeInMillis,
-        AlarmManager.INTERVAL_DAY,
-        pendingIntent
-    )
 }

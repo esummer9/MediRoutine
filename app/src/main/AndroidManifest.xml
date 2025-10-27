@@ -16,7 +16,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MyApplication">
         <activity
-            android:name="com.ediapp.MediRoutine.MainActivity"
+            android:name=".MainActivity"
             android:exported="true"
             android:theme="@style/Theme.MyApplication">
             <intent-filter>
@@ -26,16 +26,16 @@
             </intent-filter>
         </activity>
 
+<!--        <receiver-->
+<!--            android:name=".NotificationReceiver"-->
+<!--            android:enabled="true"-->
+<!--            android:exported="false">-->
+<!--            <intent-filter>-->
+<!--                <action android:name="android.intent.action.BOOT_COMPLETED" />-->
+<!--            </intent-filter>-->
+<!--        </receiver>-->
         <receiver
-            android:name="com.ediapp.MediRoutine.NotificationReceiver"
-            android:enabled="true"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-            </intent-filter>
-        </receiver>
-        <receiver
-            android:name="com.ediapp.MediRoutine.NotificationActionReceiver"
+            android:name=".NotificationActionReceiver"
             android:enabled="true"
             android:exported="false" />
     </application>
