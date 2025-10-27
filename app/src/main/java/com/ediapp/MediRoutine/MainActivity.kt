@@ -159,18 +159,18 @@ fun MyApplicationApp() {
     var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.HOME) }
 
     val navigateTo: (AppDestinations) -> Unit = {
-//        newDestination ->
+        newDestination ->
 //            if (currentDestination == AppDestinations.SETTINGS && medName.length < 2) {
 //                Toast.makeText(context, "약 이름은 2글자 이상 입력해주세요.", Toast.LENGTH_SHORT).show()
 //            } else {
-//                if(currentDestination == AppDestinations.SETTINGS) {
+                if(currentDestination == AppDestinations.SETTINGS) {
 //                    with(prefs.edit()) {
 //                        putString("med_name", medName)
 //                        putBoolean("daily_report_enabled", morningEnabled)
 //                        apply()
 //                    }
-//                }
-//                currentDestination = newDestination
+                }
+                currentDestination = newDestination
 //            }
     }
 
