@@ -1,17 +1,21 @@
 package com.ediapp.MediRoutine
 
+import android.Manifest
 import android.app.AlarmManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -41,19 +45,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import com.ediapp.MediRoutine.ui.theme.MyApplicationTheme
-import java.text.SimpleDateFormat
 import java.util.Calendar
-import java.util.Date
-import java.util.Locale
-
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Getting a writable database instance will create the database and call onCreate if needed.
         val dbHelper = DatabaseHelper(this)
         dbHelper.writableDatabase
 
@@ -71,24 +70,65 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+        createNotificationChannel()
+
         setContent {
             MyApplicationTheme {
-                MyApplicationApp { context, onPermissionRequired ->
-                    setAlarm(context, onPermissionRequired)
-                }
+                MyApplicationApp(
+                    setAlarm = { context, onPermissionRequired ->
+                        setAlarm(context, onPermissionRequired)
+                    }
+                )
             }
+        }
+    }
+
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val name = "MediRoutine Channel"
+            val descriptionText = "Channel for MediRoutine notifications"
+            val importance = NotificationManager.IMPORTANCE_HIGH
+            val channel = NotificationChannel("medi_routine_channel", name, importance).apply {
+                description = descriptionText
+            }
+            val notificationManager: NotificationManager =
+                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MyApplicationApp(setAlarm: (Context, () -> Unit) -> Unit) {
+fun MyApplicationApp(
+    setAlarm: (Context, () -> Unit) -> Unit
+) {
     val context = LocalContext.current
     var showPermissionDialog by remember { mutableStateOf(false) }
 
-    // Call setAlarm with a callback for when permission is needed
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted ->
+            if (isGranted) {
+                NotificationHelper.showNotification(context)
+            } else {
+                Toast.makeText(context, "알림 권한이 필요합니다.", Toast.LENGTH_SHORT).show()
+            }
+        }
+    )
+
     LaunchedEffect(Unit) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val permissionStatus = ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
+            if (permissionStatus == PackageManager.PERMISSION_GRANTED) {
+                NotificationHelper.showNotification(context)
+            } else {
+                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        } else {
+            NotificationHelper.showNotification(context)
+        }
+
         setAlarm(context) {
             showPermissionDialog = true
         }
@@ -111,14 +151,8 @@ fun MyApplicationApp(setAlarm: (Context, () -> Unit) -> Unit) {
                     Text(stringResource(R.string.permission_dialog_confirm_button))
                 }
             },
-//            dismissButton = {
-//                TextButton(onClick = { showPermissionDialog = false }) {
-//                    Text("취소")
-//                }
-//            }
         )
     }
-//    val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences("MediRoutine_prefs", Context.MODE_PRIVATE) }
 
     var medName by rememberSaveable { mutableStateOf(prefs.getString("med_name", "") ?: "") }
@@ -188,9 +222,7 @@ fun MyApplicationApp(setAlarm: (Context, () -> Unit) -> Unit) {
                                 putString("notification_time", newTime)
                                 apply()
                             }
-                            // Set up the alarm with permission handling
                             setAlarm(context) {
-                                // This will be called if permission is needed
                                 showPermissionDialog = true
                             }
                         }
@@ -216,7 +248,6 @@ private fun setAlarm(context: Context, onPermissionRequired: () -> Unit) {
     val intent = Intent(context, NotificationReceiver::class.java)
     val pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
 
-    // Cancel any existing alarms
     alarmManager.cancel(pendingIntent)
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -249,30 +280,4 @@ private fun setAlarm(context: Context, onPermissionRequired: () -> Unit) {
         AlarmManager.INTERVAL_DAY,
         pendingIntent
     )
-
-    // 즉시 알림 생성
-    val todayDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-    val dbHelper = DatabaseHelper(context)
-    if (!dbHelper.isActionExists("drug-$todayDate")) {
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        val channelId = "medi_routine_channel"
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(channelId, "MediRoutine", NotificationManager.IMPORTANCE_DEFAULT)
-            notificationManager.createNotificationChannel(channel)
-        }
-
-        val notificationIntent = Intent(context, MainActivity::class.java)
-        val notificationPendingIntent = PendingIntent.getActivity(context, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE)
-
-        val notification = NotificationCompat.Builder(context, channelId)
-            .setContentTitle("약 복용 시간")
-            .setContentText("오늘 약을 복용하셨나요?")
-            .setSmallIcon(R.drawable.med_routine)
-            .setContentIntent(notificationPendingIntent)
-            .setAutoCancel(true)
-            .build()
-
-        notificationManager.notify(1, notification)
-    }
 }
