@@ -10,7 +10,7 @@ class NotificationActionReceiver : BroadcastReceiver() {
         when (intent.action) {
             "com.ediapp.MediRoutine.ACTION_TAKE_MEDICINE" -> {
                 val dbHelper = DatabaseHelper(context)
-                val newId = dbHelper.addDoAction()
+                val newId = dbHelper.addDrugAction()
                 Toast.makeText(context, "복용했습니다. (ID: $newId)", Toast.LENGTH_SHORT).show()
 
                 // Update the notification using the helper

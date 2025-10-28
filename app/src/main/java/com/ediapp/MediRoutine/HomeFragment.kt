@@ -1,9 +1,7 @@
 package com.ediapp.MediRoutine
 
-import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -65,18 +63,18 @@ fun HomeFragment() {
     var showDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val dbHelper = remember { DatabaseHelper(context) }
-    var progress by remember { mutableStateOf(dbHelper.getDrugActionCount()) }
+    var progress by remember { mutableStateOf(dbHelper.getDrugTodayCount()) }
 
     // 1. 복용 기록 상태를 HomeFragment 최상단으로 이동
     val monthFormat = SimpleDateFormat("yyyy-MM", Locale.getDefault())
-    var actions by remember { mutableStateOf(dbHelper.getAllActions(monthFormat.format(Date()))) }
+    var actions by remember { mutableStateOf(dbHelper.getDrugLists(monthFormat.format(Date()))) }
 
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
-                actions = dbHelper.getAllActions(monthFormat.format(Date()))
-                progress = dbHelper.getDrugActionCount()
+                actions = dbHelper.getDrugLists(monthFormat.format(Date()))
+                progress = dbHelper.getDrugTodayCount()
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -120,11 +118,11 @@ fun HomeFragment() {
                         title = currentMonth,
                         fontSize = 18.sp,
                         onDrugTaken = {
-                            val newId = dbHelper.addDoAction()
+                            val newId = dbHelper.addDrugAction()
                             Toast.makeText(context, "복용했습니다. (ID: $newId)", Toast.LENGTH_SHORT).show()
-                            progress = dbHelper.getDrugActionCount()
+                            progress = dbHelper.getDrugTodayCount()
                             // 복용 기록 상태를 DB에서 다시 불러와 갱신
-                            actions = dbHelper.getAllActions(monthFormat.format(Date()))
+                            actions = dbHelper.getDrugLists(monthFormat.format(Date()))
                         }
                     )
                     GridItem(

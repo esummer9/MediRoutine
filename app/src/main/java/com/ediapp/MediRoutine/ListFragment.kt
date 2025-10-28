@@ -76,7 +76,7 @@ fun ListFragment() {
 
     fun refetchActions() {
         val monthStr = monthFormatForQuery.format(currentDate.time)
-        actions = dbHelper.getAllActions(month = monthStr, orderBy = "act_registered_at", orderDirection = "DESC")
+        actions = dbHelper.getDrugLists(month = monthStr, orderBy = "act_registered_at", orderDirection = "DESC")
     }
 
     LaunchedEffect(currentDate) {
@@ -145,7 +145,7 @@ fun ListFragment() {
                     LazyColumn(modifier = Modifier.padding(top = 16.dp)) {
                         items(actions) { action ->
                             ActionCard(action) {
-                                dbHelper.deleteAction(action.id)
+                                dbHelper.deleteDrugAction(action.id)
                                 refetchActions()
                             }
                         }
@@ -192,7 +192,7 @@ fun ListFragment() {
             initialCalendar = dateForDialog,
             onDismiss = { showDialog = false },
             onConfirm = { date ->
-                val newId = dbHelper.addDoAction(date)
+                val newId = dbHelper.addDrugAction(date)
                 refetchActions()
                 Toast.makeText(context, "추가 되었습니다 (ID: $newId)", Toast.LENGTH_SHORT).show()
                 showDialog = false
@@ -213,7 +213,7 @@ fun ListFragment() {
                             val datePrefix = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(cal.time)
 
                             actions.filter { it.actRegisteredAt!!.startsWith(datePrefix) }.forEach {
-                                dbHelper.deleteAction(it.id)
+                                dbHelper.deleteDrugAction(it.id)
                             }
                             refetchActions()
                         }

@@ -18,7 +18,7 @@ object NotificationHelper {
         val dateString = dateFormat.format(today)
 
         val dbHelper = DatabaseHelper(context)
-        val drugActionCount = dbHelper.getDrugActionCount()
+        val drugActionCount = dbHelper.getDrugTodayCount()
 
         val intent = Intent(context, NotificationActionReceiver::class.java).apply {
             action = "com.ediapp.MediRoutine.ACTION_TAKE_MEDICINE"

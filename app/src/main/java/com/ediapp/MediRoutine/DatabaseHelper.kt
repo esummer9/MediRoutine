@@ -67,15 +67,15 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         onCreate(db)
     }
 
-    fun addDoAction(): Long {
-        return addDoAction(Date())
+    fun addDrugAction(): Long {
+        return addDrugAction(Date())
     }
 
-    fun addDoAction(registedAt: Date): Long {
+    fun addDrugAction(registedAt: Date): Long {
         val actKeyDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(registedAt)
         val actKey = "drug-${actKeyDate}"
 
-        if (isActionExists(actKey)) {
+        if (isDrugExists(actKey)) {
             return -1L
         }
 
@@ -94,7 +94,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         return id
     }
 
-    fun isActionExists(actKey: String): Boolean {
+    fun isDrugExists(actKey: String): Boolean {
         val db = this.readableDatabase
         val cursor = db.rawQuery("SELECT COUNT(*) FROM $TABLE_NAME WHERE $COL_ACT_KEY = ? AND $COL_ACT_DELETED_AT IS NULL", arrayOf(actKey))
         val exists = if (cursor.moveToFirst()) cursor.getInt(0) > 0 else false
@@ -104,24 +104,26 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     }
 
 
-    fun getDrugActionCount(): Int {
+    fun getDrugTodayCount(): Int {
         val actKeyDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
         val actKey = "drug-${actKeyDate}"
 
-        if (isActionExists(actKey)) {
+        if (isDrugExists(actKey)) {
             return 1
         } else
             return 0
     }
 
-    fun getAllActions(month: String?, orderBy: String = COL_ID, orderDirection: String = "DESC"): List<Action> {
+    fun getDrugLists(month: String?, orderBy: String = COL_ID, orderDirection: String = "DESC"): List<Action> {
         val actions = mutableListOf<Action>()
         val db = this.readableDatabase
 
         val monthSql = if (month != null) "strftime('%Y-%m', $COL_ACT_REGISTERED_AT) = '$month'" else "1=1"
 
         val sql = "SELECT * FROM $TABLE_NAME WHERE $monthSql AND $COL_ACT_DELETED_AT IS NULL ORDER BY $orderBy $orderDirection"
+
         Log.d("DatabaseHelper", "SQL: $sql")
+
         val cursor = db.rawQuery(sql, null)
         if (cursor.moveToFirst()) {
             do {
@@ -145,7 +147,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         return actions
     }
 
-    fun deleteAction(id: Long) {
+    fun deleteDrugAction(id: Long) {
         val db = this.writableDatabase
         val values = ContentValues()
         val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
