@@ -55,14 +55,13 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
-enum class ViewType {
+enum class RefillViewType {
     CALENDAR, LIST
 }
 
 @Composable
-fun ListFragment() {
+fun RefillFragment() {
     var currentDate by remember { mutableStateOf(Calendar.getInstance()) }
-    var viewType by remember { mutableStateOf(ViewType.CALENDAR) }
     val context = LocalContext.current
     val dbHelper = DatabaseHelper(context)
     var actions by remember { mutableStateOf<List<Action>>(emptyList()) }
@@ -129,59 +128,14 @@ fun ListFragment() {
                         )
                     }
                 }
-
-                Row {
-                    TextButton(onClick = { viewType = ViewType.CALENDAR }) {
-                        Text("달력")
-                    }
-                    TextButton(onClick = { viewType = ViewType.LIST }) {
-                        Text("목록")
-                    }
-                }
             }
 
-            when (viewType) {
-                ViewType.LIST -> {
-                    LazyColumn(modifier = Modifier.padding(top = 16.dp)) {
-                        items(actions) { action ->
-                            ActionCard(action) {
-                                dbHelper.deleteAction(action.id)
-                                refetchActions()
-                            }
-                        }
+            LazyColumn(modifier = Modifier.padding(top = 16.dp)) {
+                items(actions) { action ->
+                    RefillCard(action) {
+                        dbHelper.deleteAction(action.id)
+                        refetchActions()
                     }
-                }
-                ViewType.CALENDAR -> {
-                    val highlightedDays = remember(actions) {
-                        actions.mapNotNull { action ->
-                            try {
-                                val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-                                val date = dateFormat.parse(action.actRegisteredAt)
-                                date?.let {
-                                    val cal = Calendar.getInstance()
-                                    cal.time = it
-                                    cal.get(Calendar.DAY_OF_MONTH)
-                                }
-                            } catch (e: Exception) {
-                                null
-                            }
-                        }.distinct()
-                    }
-                    CalendarView(
-                        currentDate = currentDate,
-                        highlightedDays = highlightedDays,
-                        onDayClick = { day ->
-                            if (highlightedDays.contains(day)) {
-                                dayToDelete = day
-                                showDeleteDayDialog = true
-                            } else {
-                                val clickedCalendar = currentDate.clone() as Calendar
-                                clickedCalendar.set(Calendar.DAY_OF_MONTH, day)
-                                dateForDialog = clickedCalendar
-                                showDialog = true
-                            }
-                        }
-                    )
                 }
             }
         }
@@ -239,86 +193,7 @@ fun ListFragment() {
 }
 
 @Composable
-fun CalendarView(currentDate: Calendar, highlightedDays: List<Int>, onDayClick: (Int) -> Unit) {
-    val calendar = currentDate.clone() as Calendar
-    calendar.set(Calendar.DAY_OF_MONTH, 1)
-    val firstDayOfWeek = calendar.get(Calendar.DAY_OF_WEEK) - 1
-    val daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
-    val days = (1..daysInMonth).toList()
-    val emptyCells = List(firstDayOfWeek) { }
-
-    val dayOfWeekLabels = listOf("일", "월", "화", "수", "목", "금", "토")
-    val today = Calendar.getInstance()
-
-    Column(modifier = Modifier.padding(top = 16.dp)) {
-        Row(Modifier.fillMaxWidth()) {
-            dayOfWeekLabels.forEachIndexed { index, label ->
-                val color = when (index) {
-                    0 -> Color.Red
-                    6 -> Color.Blue
-                    else -> Color.Unspecified
-                }
-                Text(
-                    text = label,
-                    modifier = Modifier.weight(1f),
-                    textAlign = TextAlign.Center,
-                    fontWeight = FontWeight.Bold,
-                    color = color
-                )
-            }
-        }
-
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(7),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            items(emptyCells.size) {
-                Box(modifier = Modifier.size(40.dp)) {}
-            }
-            items(days.size) { dayIndex ->
-                val day = days[dayIndex]
-                val isHighlighted = highlightedDays.contains(day)
-                val dayOfWeek = (firstDayOfWeek + dayIndex) % 7
-                val textColor = when (dayOfWeek) {
-                    0 -> Color.Red    // Sunday
-                    6 -> Color.Blue   // Saturday
-                    else -> Color.Unspecified
-                }
-
-                val cellDate = (currentDate.clone() as Calendar).apply {
-                    set(Calendar.DAY_OF_MONTH, day)
-                    set(Calendar.HOUR_OF_DAY, 0)
-                    set(Calendar.MINUTE, 0)
-                    set(Calendar.SECOND, 0)
-                    set(Calendar.MILLISECOND, 0)
-                }
-                val isFuture = cellDate.after(today)
-
-                Box(
-                    modifier = Modifier
-                        .size(50.dp)
-                        .padding(3.dp)
-                        .clickable(enabled = !isFuture) { onDayClick(day) }
-                        .background(
-                            color = if (isHighlighted) Color.LightGray else Color.Transparent,
-                            shape = RoundedCornerShape(3.dp)
-                        )
-                        .padding(if (isHighlighted) 10.dp else 5.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = day.toString(),
-                        fontWeight = FontWeight.Bold,
-                        color = if (isFuture) Color.LightGray else textColor
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun AddActionDialog(
+fun AddRefillDialog(
     initialCalendar: Calendar? = null,
     onDismiss: () -> Unit,
     onConfirm: (Date) -> Unit
@@ -403,7 +278,7 @@ fun AddActionDialog(
 }
 
 @Composable
-fun ActionCard(action: Action, onDelete: () -> Unit) {
+fun RefillCard(action: Action, onDelete: () -> Unit) {
     var showDeleteConfirmDialog by remember { mutableStateOf(false) }
 
     Card(

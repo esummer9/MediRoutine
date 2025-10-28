@@ -33,7 +33,7 @@ object NotificationHelper {
         var notification = NotificationCompat.Builder(context, "medi_routine_channel")
             .setSmallIcon(R.drawable.med_routine)
             .setContentTitle("$dateString 약 복용")
-            .setContentText("약 복용 수: $drugActionCount")
+            .setContentText("약복용 : $drugActionCount")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setOngoing(true)
             .addAction(R.drawable.med_routine, "복용", pendingIntent)

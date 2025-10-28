@@ -64,7 +64,6 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             // 추가할 컬럼에 데이터가 없을 경우를 대비하여 DEFAULT 값(선택 사항)을 지정할 수 있습니다.
 //            db?.execSQL("ALTER TABLE $TABLE_NAME ADD COLUMN new_column TEXT DEFAULT 'default_value';");
         }
-
         onCreate(db)
     }
 

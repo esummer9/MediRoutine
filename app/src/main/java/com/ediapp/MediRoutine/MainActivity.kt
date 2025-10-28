@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
@@ -222,6 +223,7 @@ fun MyApplicationApp() {
                 when (currentDestination) {
                     AppDestinations.HOME -> HomeFragment()
                     AppDestinations.LISTS -> ListFragment()
+                    AppDestinations.REFILL -> RefillFragment()
                     AppDestinations.HELPS -> HelpsFragment()
                 }
             }
@@ -235,6 +237,7 @@ enum class AppDestinations(
     val color: Color
 ) {
     HOME(R.string.tab_home, Icons.Default.Home, Color(0xFF00668B)),
-    LISTS(R.string.tab_favorites, Icons.Default.DateRange, Color(0xFF008080)),
-    HELPS(R.string.tab_helps, Icons.Default.Info, Color(0xFF8BC34A)),
+    LISTS(R.string.tab_status, Icons.Default.DateRange, Color(0xFF008080)),
+    REFILL(R.string.tab_refill, Icons.Default.Add, Color(0xFF8BC34A)),
+    HELPS(R.string.tab_helps, Icons.Default.Info, Color(0xFFFFC107)),
 }
