@@ -53,11 +53,11 @@ object NotificationHelper {
 
             .build()
 
-        if (drugActionCount < 1) {
-            notificationManager.notify(1, notification)
-        } else {
-            notificationManager.notify(1, notification)
-        }
+//        if (drugActionCount < 1) {
+//            notificationManager.notify(1, notification)
+//        } else {
+//            notificationManager.notify(1, notification)
+//        }
 
 
         notificationManager.notify(1, notification)
