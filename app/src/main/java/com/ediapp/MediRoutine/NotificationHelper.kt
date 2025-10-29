@@ -4,6 +4,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.graphics.BitmapFactory
 import androidx.core.app.NotificationCompat
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -30,14 +31,26 @@ object NotificationHelper {
         }
         val deletePendingIntent = PendingIntent.getBroadcast(context, 1, deleteIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
 
+        val mainActivityIntent = Intent(context, MainActivity::class.java).apply {
+            // Optional: Add flags if you want specific behavior when MainActivity is launched
+            // For example, to clear the back stack and start MainActivity as a new task:
+             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+
+        val mainActivityPendingIntent = PendingIntent.getActivity(context, 2, mainActivityIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+
         var notification = NotificationCompat.Builder(context, "medi_routine_channel")
-            .setSmallIcon(R.drawable.med_routine)
             .setContentTitle("$dateString 약 복용")
+            .setSmallIcon(R.drawable.med_routine)
+            .setLargeIcon(BitmapFactory.decodeResource(context.resources, R.drawable.med_routine)) // Add this line
+
             .setContentText("약복용 : $drugActionCount")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setOngoing(true)
             .addAction(R.drawable.med_routine, "복용", pendingIntent)
             .setDeleteIntent(deletePendingIntent)
+            .setContentIntent(mainActivityPendingIntent) // This sets the intent for tapping the notification itself
+
             .build()
 
         if (drugActionCount < 1) {

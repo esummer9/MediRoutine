@@ -48,10 +48,6 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
-enum class RefillViewType {
-    CALENDAR, LIST
-}
-
 @Composable
 fun RefillFragment() {
     var currentDate by remember { mutableStateOf(Calendar.getInstance()) }
@@ -68,7 +64,7 @@ fun RefillFragment() {
 
     fun refetchActions() {
         val monthStr = monthFormatForQuery.format(currentDate.time)
-        actions = dbHelper.getDrugLists(month = monthStr, orderBy = "act_registered_at", orderDirection = "DESC")
+        actions = dbHelper.getDrugListsByMonth(month = monthStr, orderBy = "act_registered_at", orderDirection = "DESC")
     }
 
     LaunchedEffect(currentDate) {

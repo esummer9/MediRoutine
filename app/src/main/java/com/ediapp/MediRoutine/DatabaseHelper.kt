@@ -114,7 +114,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             return 0
     }
 
-    fun getDrugLists(month: String?, orderBy: String = COL_ID, orderDirection: String = "DESC"): List<Action> {
+    fun getDrugListsByMonth(month: String?, orderBy: String = COL_ID, orderDirection: String = "DESC"): List<Action> {
         val actions = mutableListOf<Action>()
         val db = this.readableDatabase
 

@@ -74,6 +74,7 @@ fun SettingsScreen(medName: String,
     // SharedPreferences 인스턴스 가져오기 (MainActivity와 동일한 키 사용)
     val prefs = remember { context.getSharedPreferences("MediRoutine_prefs", Context.MODE_PRIVATE) }
 
+    var showDailyReport by remember { mutableStateOf(false) } // Set initial state as needed
 
     Scaffold(
         topBar = {
@@ -148,12 +149,13 @@ fun SettingsScreen(medName: String,
             }
 
             Spacer(modifier = Modifier.height(16.dp))
+            if(showDailyReport)
+                MedTimeRow(
+                    label = "일일보고",
+                    checked = morningEnabled,
 
-            MedTimeRow(
-                label = "일일보고",
-                checked = morningEnabled,
-                onCheckedChange = onMorningEnabledChange // Use the callback to update state
-            )
+                    onCheckedChange = onMorningEnabledChange // Use the callback to update state
+                )
         }
     }
 }
@@ -166,7 +168,8 @@ fun MedTimeRow(label: String, checked: Boolean, onCheckedChange: (Boolean) -> Un
             .fillMaxWidth()
             .padding(vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
+
     ) {
         Text(text = label, fontSize = 16.sp)
         Switch(checked = checked, onCheckedChange = onCheckedChange)

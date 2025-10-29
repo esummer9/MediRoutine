@@ -67,13 +67,13 @@ fun HomeFragment() {
 
     // 1. 복용 기록 상태를 HomeFragment 최상단으로 이동
     val monthFormat = SimpleDateFormat("yyyy-MM", Locale.getDefault())
-    var actions by remember { mutableStateOf(dbHelper.getDrugLists(monthFormat.format(Date()))) }
+    var actions by remember { mutableStateOf(dbHelper.getDrugListsByMonth(monthFormat.format(Date()))) }
 
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
-                actions = dbHelper.getDrugLists(monthFormat.format(Date()))
+                actions = dbHelper.getDrugListsByMonth(monthFormat.format(Date()))
                 progress = dbHelper.getDrugTodayCount()
             }
         }
@@ -122,7 +122,7 @@ fun HomeFragment() {
                             Toast.makeText(context, "복용했습니다. (ID: $newId)", Toast.LENGTH_SHORT).show()
                             progress = dbHelper.getDrugTodayCount()
                             // 복용 기록 상태를 DB에서 다시 불러와 갱신
-                            actions = dbHelper.getDrugLists(monthFormat.format(Date()))
+                            actions = dbHelper.getDrugListsByMonth(monthFormat.format(Date()))
                         }
                     )
                     GridItem(

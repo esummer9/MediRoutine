@@ -151,11 +151,11 @@ fun MyApplicationApp() {
             },
         )
     }
-    val prefs = remember { context.getSharedPreferences("MediRoutine_prefs", Context.MODE_PRIVATE) }
-
-    var medName by rememberSaveable { mutableStateOf(prefs.getString("med_name", "") ?: "") }
-    var morningEnabled by rememberSaveable { mutableStateOf(prefs.getBoolean("daily_report_enabled", false)) }
-    var selectedTime by rememberSaveable { mutableStateOf(prefs.getString("notification_time", "08:00") ?: "08:00") }
+//    val prefs = remember { context.getSharedPreferences("MediRoutine_prefs", Context.MODE_PRIVATE) }
+//
+//    var medName by rememberSaveable { mutableStateOf(prefs.getString("med_name", "") ?: "") }
+//    var morningEnabled by rememberSaveable { mutableStateOf(prefs.getBoolean("daily_report_enabled", false)) }
+//    var selectedTime by rememberSaveable { mutableStateOf(prefs.getString("notification_time", "08:00") ?: "08:00") }
 
     var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.HOME) }
 
@@ -223,7 +223,7 @@ fun MyApplicationApp() {
                 when (currentDestination) {
                     AppDestinations.HOME -> HomeFragment()
                     AppDestinations.LISTS -> ListFragment()
-                    AppDestinations.REFILL -> RefillFragment()
+//                    AppDestinations.REFILL -> RefillFragment()
                     AppDestinations.HELPS -> HelpsFragment()
                 }
             }
@@ -238,6 +238,6 @@ enum class AppDestinations(
 ) {
     HOME(R.string.tab_home, Icons.Default.Home, Color(0xFF00668B)),
     LISTS(R.string.tab_status, Icons.Default.DateRange, Color(0xFF008080)),
-    REFILL(R.string.tab_refill, Icons.Default.Add, Color(0xFF8BC34A)),
+//    REFILL(R.string.tab_refill, Icons.Default.Add, Color(0xFF8BC34A)),
     HELPS(R.string.tab_helps, Icons.Default.Info, Color(0xFFFFC107)),
 }
