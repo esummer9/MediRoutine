@@ -11,7 +11,16 @@ class NotificationActionReceiver : BroadcastReceiver() {
             "com.ediapp.MediRoutine.ACTION_TAKE_MEDICINE" -> {
                 val dbHelper = DatabaseHelper(context)
                 val newId = dbHelper.addDrugAction()
-                Toast.makeText(context, "복용했습니다. (ID: $newId)", Toast.LENGTH_SHORT).show()
+
+                val prefs = context.getSharedPreferences("MediRoutine_prefs", Context.MODE_PRIVATE)
+
+                val medNickName = prefs.getString("med_nick_name", "") ?: ""
+                Toast
+                    .makeText(context, "$medNickName 을 복용했습니다. (ID: $newId)", Toast.LENGTH_SHORT)
+                    .show()
+
+
+//                Toast.makeText(context, "복용했습니다. (ID: $newId)", Toast.LENGTH_SHORT).show()
 
                 // Update the notification using the helper
                 NotificationHelper.showNotification(context)

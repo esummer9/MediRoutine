@@ -2,6 +2,7 @@ package com.ediapp.MediRoutine
 
 import com.ediapp.MediRoutine.model.Action
 import android.app.DatePickerDialog
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -73,6 +74,7 @@ fun ListFragment() {
 
     val monthFormat = remember { SimpleDateFormat("yyyy년 MM월", Locale.KOREAN) }
     val monthFormatForQuery = remember { SimpleDateFormat("yyyy-MM", Locale.getDefault()) }
+    val prefs = context.getSharedPreferences("MediRoutine_prefs", Context.MODE_PRIVATE)
 
     fun refetchActions() {
         val monthStr = monthFormatForQuery.format(currentDate.time)
@@ -194,7 +196,13 @@ fun ListFragment() {
             onConfirm = { date ->
                 val newId = dbHelper.addDrugAction(date)
                 refetchActions()
-                Toast.makeText(context, "추가 되었습니다 (ID: $newId)", Toast.LENGTH_SHORT).show()
+
+                val medNickName = prefs.getString("med_nick_name", "") ?: ""
+                Toast
+                    .makeText(context, "$medNickName 을 복용했습니다. (ID: $newId)", Toast.LENGTH_SHORT)
+                    .show()
+
+//                Toast.makeText(context, "추가 되었습니다 (ID: $newId)", Toast.LENGTH_SHORT).show()
                 showDialog = false
             }
         )

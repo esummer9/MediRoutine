@@ -50,6 +50,7 @@ class SettingsActivity : ComponentActivity() {
 
     private lateinit var prefs: SharedPreferences
     private var medName by mutableStateOf("")
+    private var medNickName by mutableStateOf("")
     private var morningEnabled by mutableStateOf(false)
     private var selectedTime by mutableStateOf("08:00")
 
@@ -61,6 +62,7 @@ class SettingsActivity : ComponentActivity() {
 
         // Load initial settings from SharedPreferences
         medName = prefs.getString("med_name", "") ?: ""
+        medNickName = prefs.getString("med_nick_name", "") ?: ""
         morningEnabled = prefs.getBoolean("daily_report_enabled", false)
         selectedTime = prefs.getString("notification_time", "08:00") ?: "08:00"
 
@@ -68,9 +70,11 @@ class SettingsActivity : ComponentActivity() {
             MyApplicationTheme {
                 SettingsScreen(
                     medName = medName,
+                    medNickName = medNickName,
                     morningEnabled = morningEnabled,
                     selectedTime = selectedTime,
                     onMedNameChange = { medName = it },
+                    onMedNickNameChange = { medNickName = it },
                     onMorningEnabledChange = { isEnabled ->
                         morningEnabled = isEnabled
                         if (isEnabled) {
@@ -91,7 +95,7 @@ class SettingsActivity : ComponentActivity() {
     }
 
     override fun onStop() {
-        saveSettings(prefs, medName, morningEnabled, selectedTime)
+        saveSettings(prefs, medName, medNickName, morningEnabled, selectedTime)
         super.onStop()
     }
 }
@@ -115,11 +119,11 @@ fun scheduleNotification(context: Context, time: String) {
         calendar.add(Calendar.DATE, 1)
     }
 
-    alarmManager.setExactAndAllowWhileIdle(
-        AlarmManager.RTC_WAKEUP,
-        calendar.timeInMillis,
-        pendingIntent
-    )
+//    alarmManager.setExactAndAllowWhileIdle(
+//        AlarmManager.RTC_WAKEUP,
+//        calendar.timeInMillis,
+//        pendingIntent
+//    )
 }
 
 fun cancelNotification(context: Context) {
@@ -134,9 +138,11 @@ fun cancelNotification(context: Context) {
 @Composable
 fun SettingsScreen(
     medName: String,
+    medNickName: String,
     morningEnabled: Boolean,
     selectedTime: String,
     onMedNameChange: (String) -> Unit,
+    onMedNickNameChange: (String) -> Unit,
     onMorningEnabledChange: (Boolean) -> Unit,
     onSelectedTimeChange: (String) -> Unit
 ) {
@@ -155,7 +161,7 @@ fun SettingsScreen(
                 navigationIcon = {
                     IconButton(onClick = {
                         // 변경사항 저장 로직 호출
-                        saveSettings(prefs, medName, morningEnabled, selectedTime)
+                        saveSettings(prefs, medName, medNickName, morningEnabled, selectedTime)
                         // Activity 종료
                         (context as? Activity)?.finish()
                     }) {
@@ -178,8 +184,20 @@ fun SettingsScreen(
                 label = { Text("약이름") },
                 modifier = Modifier.fillMaxWidth()
             )
-            Text("예시) 혈압약, 영양제 ...")
+            Text("\uD83D\uDC8A 네오텔미, 메트포르민 ...")
             Spacer(modifier = Modifier.height(32.dp))
+
+            OutlinedTextField(
+                value = medNickName,
+                onValueChange = onMedNickNameChange, // Use the callback to update state
+                label = { Text("별명") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Text("\uD83D\uDC8A 비타민,영양제,잘먹자")
+            Text("\uD83D\uDD08 공유&통계에 사용합니다!")
+            Spacer(modifier = Modifier.height(32.dp))
+
+
             Text(text = "시간설정", fontSize = 20.sp)
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -244,9 +262,10 @@ fun MedTimeRow(label: String, checked: Boolean, onCheckedChange: (Boolean) -> Un
 }
 
 // 변경사항을 SharedPreferences에 저장하는 함수
-fun saveSettings(prefs: SharedPreferences, medName: String?, morningEnabled: Boolean, selectedTime: String?) {
+fun saveSettings(prefs: SharedPreferences, medName: String?, medNickName: String?, morningEnabled: Boolean, selectedTime: String?) {
     with(prefs.edit()) {
         putString("med_name", medName)
+        putString("med_nick_name", medNickName)
         putBoolean("daily_report_enabled", morningEnabled)
         putString("notification_time", selectedTime) // selectedTime도 함께 저장
         apply()

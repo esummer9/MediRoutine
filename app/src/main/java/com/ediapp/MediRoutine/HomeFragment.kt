@@ -1,5 +1,6 @@
 package com.ediapp.MediRoutine
 
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
@@ -17,11 +18,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -33,7 +34,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -75,6 +75,9 @@ fun HomeFragment(showAnimationFromNotification: Boolean = false, onAnimationCons
 
     var showAnimation by remember { mutableStateOf(false) }
     val size = remember { Animatable(20f) }
+
+    // Get SharedPreferences instance
+    val prefs = context.getSharedPreferences("MediRoutine_prefs", Context.MODE_PRIVATE)
 
     fun updateAchievementRate() {
         val (startDate, drugCount) = dbHelper.getAchievementStats()
@@ -150,8 +153,9 @@ fun HomeFragment(showAnimationFromNotification: Boolean = false, onAnimationCons
                             fontSize = 18.sp,
                             onDrugTaken = {
                                 val newId = dbHelper.addDrugAction()
+                                val medNickName = prefs.getString("med_nick_name", "") ?: ""
                                 Toast
-                                    .makeText(context, "복용했습니다. (ID: $newId)", Toast.LENGTH_SHORT)
+                                    .makeText(context, "$medNickName 을 복용했습니다. (ID: $newId)", Toast.LENGTH_SHORT)
                                     .show()
                                 progress = dbHelper.getDrugTodayCount()
                                 actions =
@@ -198,12 +202,12 @@ fun HomeFragment(showAnimationFromNotification: Boolean = false, onAnimationCons
         if (showAnimation) {
             LaunchedEffect(showAnimation) {
                 // Grow
-                size.animateTo(
+                size.animateTo (
                     targetValue = 200f,
                     animationSpec = tween(durationMillis = 1000)
                 )
                 // Shrink
-                size.animateTo(
+                size.animateTo (
                     targetValue = 20f,
                     animationSpec = tween(durationMillis = 1000)
                 )
@@ -252,7 +256,7 @@ fun HomeFragment(showAnimationFromNotification: Boolean = false, onAnimationCons
 }
 
 @Composable
-fun GridItem(modifier: Modifier = Modifier, index : Int = 1, title: String, fontSize: TextUnit = 18.sp, progress: Int = 0, days: Long = 0, onDrugTaken: () -> Unit = {}) {
+fun GridItem(modifier: Modifier = Modifier, index : Int = 1, title: String, fontSize: TextUnit = 18.sp, progress: Int = 0, maxProgress: Int = 100, days: Long = 0, onDrugTaken: () -> Unit = {}) {
     Box(
         modifier = modifier
             .background(Color(0xFFEEEEEE), shape = RoundedCornerShape(8.dp))
@@ -275,7 +279,7 @@ fun GridItem(modifier: Modifier = Modifier, index : Int = 1, title: String, font
                     else -> Color.Black
                 }
 
-                Text(text = title, fontSize = fontSize, color = color)
+                Text(text = title, fontSize = fontSize, color = Color.Black)
                 Text(text = "($dayOfWeekDisplayName)", fontSize = fontSize, color = color)
                 Text(text = dayOfMonth, fontSize = 28.sp, color = color)
                 Button(
@@ -294,11 +298,19 @@ fun GridItem(modifier: Modifier = Modifier, index : Int = 1, title: String, font
                 Text(text = title, fontSize = fontSize)
                 Box(
                     contentAlignment = Alignment.Center,
-                    modifier = Modifier
-                        .size(90.dp)
-                        .clip(CircleShape)
-                        .background(Color.Yellow)
+                    modifier = Modifier.size(90.dp)
                 ) {
+                    val color = when (progress) {
+                        in -100..59 -> Color.Red
+                        in 60..89 -> Color.Blue
+                        else -> Color(0xFF00668B)
+                    }
+                    CircularProgressIndicator(
+                        progress = progress.toFloat() / maxProgress,
+                        modifier = Modifier.size(90.dp),
+                        color = color,
+                        strokeWidth = 6.dp
+                    )
                     Text(
                         text = "$progress%",
                         fontSize = 28.sp,
