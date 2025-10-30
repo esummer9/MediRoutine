@@ -6,6 +6,7 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
@@ -20,13 +21,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -121,6 +120,7 @@ class MainActivity : ComponentActivity() {
 fun MyApplicationApp(showAnimation: Boolean, onAnimationConsumed: () -> Unit) {
     val context = LocalContext.current
     var showPermissionDialog by remember { mutableStateOf(false) }
+    var showSystemAlertWindowPermissionDialog by remember { mutableStateOf(false) }
 
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
@@ -129,6 +129,17 @@ fun MyApplicationApp(showAnimation: Boolean, onAnimationConsumed: () -> Unit) {
                 NotificationHelper.showNotification(context)
             } else {
                 Toast.makeText(context, "알림 권한이 필요합니다.", Toast.LENGTH_SHORT).show()
+            }
+        }
+    )
+
+    val systemAlertWindowPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult(),
+        onResult = { _ ->
+            if (Settings.canDrawOverlays(context)) {
+                Toast.makeText(context, "다른 앱 위에 표시 권한이 허용되었습니다.", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(context, "다른 앱 위에 표시 권한이 필요합니다.", Toast.LENGTH_SHORT).show()
             }
         }
     )
@@ -143,6 +154,10 @@ fun MyApplicationApp(showAnimation: Boolean, onAnimationConsumed: () -> Unit) {
             }
         } else {
             NotificationHelper.showNotification(context)
+        }
+
+        if (!Settings.canDrawOverlays(context)) {
+            showSystemAlertWindowPermissionDialog = true
         }
     }
 
@@ -165,28 +180,41 @@ fun MyApplicationApp(showAnimation: Boolean, onAnimationConsumed: () -> Unit) {
             },
         )
     }
-//    val prefs = remember { context.getSharedPreferences("MediRoutine_prefs", Context.MODE_PRIVATE) }
-//
-//    var medName by rememberSaveable { mutableStateOf(prefs.getString("med_name", "") ?: "") }
-//    var morningEnabled by rememberSaveable { mutableStateOf(prefs.getBoolean("daily_report_enabled", false)) }
-//    var selectedTime by rememberSaveable { mutableStateOf(prefs.getString("notification_time", "08:00") ?: "08:00") }
+
+    if (showSystemAlertWindowPermissionDialog) {
+        AlertDialog(
+            onDismissRequest = { showSystemAlertWindowPermissionDialog = false },
+            title = { Text("다른 앱 위에 표시 권한 요청") },
+            text = { Text("앱의 중요한 알림을 다른 앱 위에 표시하려면 권한이 필요합니다.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showSystemAlertWindowPermissionDialog = false
+                        val intent = Intent(
+                            Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                            Uri.parse("package:${context.packageName}")
+                        )
+                        systemAlertWindowPermissionLauncher.launch(intent)
+                    }
+                ) {
+                    Text("설정으로 이동")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showSystemAlertWindowPermissionDialog = false }) {
+                    Text("취소")
+                }
+            }
+        )
+    }
 
     var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.HOME) }
 
     val navigateTo: (AppDestinations) -> Unit = {
         newDestination ->
-//            if (currentDestination == AppDestinations.HELPS && medName.length < 2) {
-//                Toast.makeText(context, "약 이름은 2글자 이상 입력해주세요.", Toast.LENGTH_SHORT).show()
-//            } else {
                 if(currentDestination == AppDestinations.HELPS) {
-//                    with(prefs.edit()) {
-//                        putString("med_name", medName)
-//                        putBoolean("daily_report_enabled", morningEnabled)
-//                        apply()
-//                    }
                 }
                 currentDestination = newDestination
-//            }
     }
 
     NavigationSuiteScaffold(
@@ -215,19 +243,16 @@ fun MyApplicationApp(showAnimation: Boolean, onAnimationConsumed: () -> Unit) {
                         containerColor = currentDestination.color,
                         titleContentColor = Color.White
                     ),
-                    // 여기에 메뉴 아이템을 추가합니다.
                     actions = {
-                        // 설정 메뉴 아이템
-                        IconButton(onClick = { /* 설정 화면으로 이동하는 로직 */
+                        IconButton(onClick = { 
                             val intent = Intent(context, SettingsActivity::class.java)
                             context.startActivity(intent)
 
                         }) {
                             Icon(Icons.Filled.Settings, contentDescription = "Settings", tint = Color.White)
                         }
-                        // 백업 메뉴 아이템
                         IconButton(onClick = { /* 백업 기능 실행 로직 */ }) {
-                            Icon(Icons.Filled.CheckCircle, contentDescription = "Backup", tint = Color.White) // Backup 아이콘이 없다면 다른 아이콘 사용
+                            Icon(Icons.Filled.CheckCircle, contentDescription = "Backup", tint = Color.White)
                         }
                     }
                 )
@@ -237,7 +262,6 @@ fun MyApplicationApp(showAnimation: Boolean, onAnimationConsumed: () -> Unit) {
                 when (currentDestination) {
                     AppDestinations.HOME -> HomeFragment(showAnimation, onAnimationConsumed)
                     AppDestinations.LISTS -> ListFragment()
-//                    AppDestinations.REFILL -> RefillFragment()
                     AppDestinations.HELPS -> HelpsFragment()
                 }
             }
@@ -252,6 +276,5 @@ enum class AppDestinations(
 ) {
     HOME(R.string.tab_home, Icons.Default.Home, Color(0xFF00668B)),
     LISTS(R.string.tab_status, Icons.Default.DateRange, Color(0xFF008080)),
-//    REFILL(R.string.tab_refill, Icons.Default.Add, Color(0xFF8BC34A)),
     HELPS(R.string.tab_helps, Icons.Default.Info, Color(0xFF00BCD4)),
 }

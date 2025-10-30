@@ -1,7 +1,10 @@
 package com.ediapp.MediRoutine
 
 import android.app.Activity
+import android.app.AlarmManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.widget.Toast
@@ -41,6 +44,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ediapp.MediRoutine.ui.theme.MyApplicationTheme
+import java.util.Calendar
 
 class SettingsActivity : ComponentActivity() {
 
@@ -90,6 +94,39 @@ class SettingsActivity : ComponentActivity() {
         saveSettings(prefs, medName, morningEnabled, selectedTime)
         super.onStop()
     }
+}
+
+fun scheduleNotification(context: Context, time: String) {
+    val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+    val intent = Intent(context, AlarmReceiver::class.java)
+    val pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+
+    val timeParts = time.split(":")
+    val hour = timeParts[0].toInt()
+    val minute = timeParts[1].toInt()
+
+    val calendar = Calendar.getInstance().apply {
+        set(Calendar.HOUR_OF_DAY, hour)
+        set(Calendar.MINUTE, minute)
+        set(Calendar.SECOND, 0)
+    }
+
+    if (calendar.before(Calendar.getInstance())) {
+        calendar.add(Calendar.DATE, 1)
+    }
+
+    alarmManager.setExactAndAllowWhileIdle(
+        AlarmManager.RTC_WAKEUP,
+        calendar.timeInMillis,
+        pendingIntent
+    )
+}
+
+fun cancelNotification(context: Context) {
+    val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+    val intent = Intent(context, AlarmReceiver::class.java)
+    val pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+    alarmManager.cancel(pendingIntent)
 }
 
 

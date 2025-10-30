@@ -1,10 +1,12 @@
 package com.ediapp.MediRoutine
 
+import android.app.AlertDialog
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
+import android.view.WindowManager
 import androidx.core.app.NotificationCompat
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -54,13 +56,23 @@ object NotificationHelper {
 
             .build()
 
-//        if (drugActionCount < 1) {
-//            notificationManager.notify(1, notification)
-//        } else {
-//            notificationManager.notify(1, notification)
-//        }
-
-
         notificationManager.notify(1, notification)
+    }
+
+    fun showMedicationDialog(context: Context) {
+        val dbHelper = DatabaseHelper(context)
+        val builder = AlertDialog.Builder(context)
+        builder.setTitle("약 복용 확인")
+        builder.setMessage("오늘 약을 복용하셨나요?")
+        builder.setPositiveButton("예") { _, _ ->
+            dbHelper.addDrugAction()
+        }
+        builder.setNegativeButton("아니오") { dialog, _ ->
+            dialog.dismiss()
+        }
+
+        val dialog = builder.create()
+        dialog.window?.setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY)
+        dialog.show()
     }
 }
