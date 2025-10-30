@@ -239,5 +239,5 @@ enum class AppDestinations(
     HOME(R.string.tab_home, Icons.Default.Home, Color(0xFF00668B)),
     LISTS(R.string.tab_status, Icons.Default.DateRange, Color(0xFF008080)),
 //    REFILL(R.string.tab_refill, Icons.Default.Add, Color(0xFF8BC34A)),
-    HELPS(R.string.tab_helps, Icons.Default.Info, Color(0xFFFFC107)),
+    HELPS(R.string.tab_helps, Icons.Default.Info, Color(0xFF00BCD4)),
 }
