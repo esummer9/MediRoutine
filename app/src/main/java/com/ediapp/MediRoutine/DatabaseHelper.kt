@@ -5,11 +5,11 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
+import com.ediapp.MediRoutine.model.Action
+import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-
-import com.ediapp.MediRoutine.model.Action
 
 class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
     companion object {
@@ -154,5 +154,34 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         values.put(COL_ACT_DELETED_AT, sdf.format(Date()))
         db.update(TABLE_NAME, values, "$COL_ID = ?", arrayOf(id.toString()))
         db.close()
+    }
+
+    fun getAchievementStats(): Pair<Date?, Int> {
+        val db = this.readableDatabase
+        var startDate: Date? = null
+        var drugCount = 0
+
+        val startDateCursor = db.rawQuery("SELECT MIN($COL_ACT_REGISTERED_AT) FROM $TABLE_NAME WHERE $COL_ACT_TYPE = 'drug' AND $COL_ACT_DELETED_AT IS NULL", null)
+        if (startDateCursor.moveToFirst()) {
+            val dateString = startDateCursor.getString(0)
+            if (dateString != null) {
+                try {
+                    startDate = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).parse(dateString)
+                } catch (e: ParseException) {
+                     Log.e("DatabaseHelper", "Error parsing date: $dateString", e)
+                }
+            }
+        }
+        startDateCursor.close()
+
+        val drugCountCursor = db.rawQuery("SELECT COUNT(*) FROM $TABLE_NAME WHERE $COL_ACT_TYPE = 'drug' AND $COL_ACT_DELETED_AT IS NULL", null)
+        if (drugCountCursor.moveToFirst()) {
+            drugCount = drugCountCursor.getInt(0)
+        }
+        drugCountCursor.close()
+
+        db.close()
+
+        return Pair(startDate, drugCount)
     }
 }

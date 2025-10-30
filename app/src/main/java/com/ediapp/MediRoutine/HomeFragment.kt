@@ -47,7 +47,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.ediapp.MediRoutine.model.Action
-//import androidx.preference.forEachIndexed
 import java.text.SimpleDateFormat
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -55,28 +54,40 @@ import java.time.format.TextStyle
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 
 @Composable
 fun HomeFragment(showAnimationFromNotification: Boolean = false, onAnimationConsumed: () -> Unit = {}) {
 
     val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-//    val currentDate = sdf.format(Date())
-
     val currentMonth = SimpleDateFormat("yy.MM", Locale.getDefault()).format(Date())
 
     var showDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val dbHelper = remember { DatabaseHelper(context) }
     var progress by remember { mutableStateOf(dbHelper.getDrugTodayCount()) }
+    var achievementRate by remember { mutableStateOf(0) }
+    var totalDays by remember { mutableStateOf(0L) }
 
-    // 1. 복용 기록 상태를 HomeFragment 최상단으로 이동
     val monthFormat = SimpleDateFormat("yyyy-MM", Locale.getDefault())
     var actions by remember { mutableStateOf(dbHelper.getDrugListsByMonth(monthFormat.format(Date()))) }
 
     var showAnimation by remember { mutableStateOf(false) }
     val size = remember { Animatable(20f) }
 
+    fun updateAchievementRate() {
+        val (startDate, drugCount) = dbHelper.getAchievementStats()
+        if (startDate != null && drugCount > 0) {
+            val diff = Date().time - startDate.time
+            val days = TimeUnit.MILLISECONDS.toDays(diff) + 1
+            achievementRate = ((drugCount.toFloat() / days) * 100).toInt()
+            totalDays = days
+        } else {
+            achievementRate = 0
+            totalDays = 0L
+        }
+    }
 
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
@@ -84,12 +95,17 @@ fun HomeFragment(showAnimationFromNotification: Boolean = false, onAnimationCons
             if (event == Lifecycle.Event.ON_RESUME) {
                 actions = dbHelper.getDrugListsByMonth(monthFormat.format(Date()))
                 progress = dbHelper.getDrugTodayCount()
+                updateAchievementRate()
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
+    }
+
+    LaunchedEffect(Unit) {
+        updateAchievementRate()
     }
 
     LaunchedEffect(showAnimationFromNotification) {
@@ -125,7 +141,6 @@ fun HomeFragment(showAnimationFromNotification: Boolean = false, onAnimationCons
                             .height(IntrinsicSize.Min),
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        // 3. onDrugTaken 람다에서 상태 업데이트
                         GridItem(
                             modifier = Modifier
                                 .weight(1f)
@@ -139,9 +154,9 @@ fun HomeFragment(showAnimationFromNotification: Boolean = false, onAnimationCons
                                     .makeText(context, "복용했습니다. (ID: $newId)", Toast.LENGTH_SHORT)
                                     .show()
                                 progress = dbHelper.getDrugTodayCount()
-                                // 복용 기록 상태를 DB에서 다시 불러와 갱신
                                 actions =
                                     dbHelper.getDrugListsByMonth(monthFormat.format(Date()))
+                                updateAchievementRate()
                                 showAnimation = true
                             }
                         )
@@ -151,7 +166,8 @@ fun HomeFragment(showAnimationFromNotification: Boolean = false, onAnimationCons
                                 .fillMaxHeight(),
                             index = 1,
                             title = "달성율",
-                            progress = progress
+                            progress = achievementRate,
+                            days = totalDays
                         )
                     }
                     Spacer(modifier = Modifier.height(16.dp))
@@ -175,7 +191,6 @@ fun HomeFragment(showAnimationFromNotification: Boolean = false, onAnimationCons
             )
 
             Column(modifier = Modifier.weight(1f)) {
-                // 2. WeekCalendarView에 상태(actions)를 파라미터로 전달
                 WeekCalendarView(actions = actions)
             }
         }
@@ -237,7 +252,7 @@ fun HomeFragment(showAnimationFromNotification: Boolean = false, onAnimationCons
 }
 
 @Composable
-fun GridItem(modifier: Modifier = Modifier, index : Int = 1, title: String, fontSize: TextUnit = 18.sp, progress: Int = 0, onDrugTaken: () -> Unit = {}) {
+fun GridItem(modifier: Modifier = Modifier, index : Int = 1, title: String, fontSize: TextUnit = 18.sp, progress: Int = 0, days: Long = 0, onDrugTaken: () -> Unit = {}) {
     Box(
         modifier = modifier
             .background(Color(0xFFEEEEEE), shape = RoundedCornerShape(8.dp))
@@ -290,6 +305,7 @@ fun GridItem(modifier: Modifier = Modifier, index : Int = 1, title: String, font
                         color = Color.Black
                     )
                 }
+                Text(text = "$days days")
             }
         } else {
             Text(text = title, fontSize = fontSize)
@@ -299,7 +315,6 @@ fun GridItem(modifier: Modifier = Modifier, index : Int = 1, title: String, font
 
 data class CalendarDay(val dayNumber: String, val fullDate: String)
 
-// 2. WeekCalendarView가 actions를 파라미터로 받도록 수정
 @Composable
 fun WeekCalendarView(actions: List<Action>) {
 
@@ -307,7 +322,6 @@ fun WeekCalendarView(actions: List<Action>) {
     val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
     val today = sdf.format(Date())
 
-    // Current Week
     calendar.time = Date()
     calendar.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY)
     calendar.add(Calendar.WEEK_OF_YEAR, -1)
@@ -339,12 +353,11 @@ fun WeekCalendarView(actions: List<Action>) {
             Row(modifier = Modifier.fillMaxWidth()) {
                 range.forEach { index ->
                     val calendarDay = twoWeekDays[index]
-                    val color = when (index % 7) { // Corrected modulo logic for day color
+                    val color = when (index % 7) { 
                         0 -> Color.Red
                         6 -> Color.Blue
                         else -> Color.Unspecified
                     }
-                    // 파라미터로 받은 actions 사용
                     val isTaken = actions.any { it.actRegisteredAt?.startsWith(calendarDay.fullDate) == true }
                     val backgroundColor = when {
                         isTaken -> Color.LightGray
