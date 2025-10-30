@@ -1,6 +1,9 @@
 package com.ediapp.MediRoutine
 
 import android.widget.Toast
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,6 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,6 +37,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -53,7 +58,7 @@ import java.util.Locale
 
 
 @Composable
-fun HomeFragment() {
+fun HomeFragment(showAnimationFromNotification: Boolean = false, onAnimationConsumed: () -> Unit = {}) {
 
     val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 //    val currentDate = sdf.format(Date())
@@ -69,6 +74,10 @@ fun HomeFragment() {
     val monthFormat = SimpleDateFormat("yyyy-MM", Locale.getDefault())
     var actions by remember { mutableStateOf(dbHelper.getDrugListsByMonth(monthFormat.format(Date()))) }
 
+    var showAnimation by remember { mutableStateOf(false) }
+    val size = remember { Animatable(20f) }
+
+
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -83,109 +92,147 @@ fun HomeFragment() {
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.weight(1f)) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(12.dp)
-                    .background(Color.Transparent)
-            ) {
-                Text(
-                    text = "오늘",
-                    fontSize = 20.sp,
-                    color = Color.Black
-                )
-            }
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(IntrinsicSize.Min),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    // 3. onDrugTaken 람다에서 상태 업데이트
-                    GridItem(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight(),
-                        index = 0,
-                        title = currentMonth,
-                        fontSize = 18.sp,
-                        onDrugTaken = {
-                            val newId = dbHelper.addDrugAction()
-                            Toast.makeText(context, "복용했습니다. (ID: $newId)", Toast.LENGTH_SHORT).show()
-                            progress = dbHelper.getDrugTodayCount()
-                            // 복용 기록 상태를 DB에서 다시 불러와 갱신
-                            actions = dbHelper.getDrugListsByMonth(monthFormat.format(Date()))
-                        }
-                    )
-                    GridItem(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight(),
-                        index = 1,
-                        title = "달성율",
-                        progress = progress
-                    )
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(IntrinsicSize.Min),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    // GridItem 추가 영역
-                }
-            }
-        }
-
-        Spacer(
-            modifier = Modifier
-                .padding(vertical = 10.dp, horizontal = 10.dp)
-                .fillMaxWidth()
-                .height(1.dp)
-                .background(Color.LightGray)
-        )
-
-        Column(modifier = Modifier.weight(1f)) {
-            // 2. WeekCalendarView에 상태(actions)를 파라미터로 전달
-            WeekCalendarView(actions = actions)
+    LaunchedEffect(showAnimationFromNotification) {
+        if (showAnimationFromNotification) {
+            showAnimation = true
         }
     }
 
-    if (showDialog) {
-        AlertDialog(
-            onDismissRequest = { showDialog = false },
-            title = { Text("확인") },
-            text = { Text("약을 복용하셨습니까?") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        Toast.makeText(context, "Yes", Toast.LENGTH_SHORT).show()
-                        showDialog = false
-                    }
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            Column(modifier = Modifier.weight(1f)) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp)
+                        .background(Color.Transparent)
                 ) {
-                    Text("Yes")
+                    Text(
+                        text = "오늘",
+                        fontSize = 20.sp,
+                        color = Color.Black
+                    )
                 }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = {
-                        Toast.makeText(context, "No", Toast.LENGTH_SHORT).show()
-                        showDialog = false
-                    }
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
                 ) {
-                    Text("No")
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(IntrinsicSize.Min),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        // 3. onDrugTaken 람다에서 상태 업데이트
+                        GridItem(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight(),
+                            index = 0,
+                            title = currentMonth,
+                            fontSize = 18.sp,
+                            onDrugTaken = {
+                                val newId = dbHelper.addDrugAction()
+                                Toast
+                                    .makeText(context, "복용했습니다. (ID: $newId)", Toast.LENGTH_SHORT)
+                                    .show()
+                                progress = dbHelper.getDrugTodayCount()
+                                // 복용 기록 상태를 DB에서 다시 불러와 갱신
+                                actions =
+                                    dbHelper.getDrugListsByMonth(monthFormat.format(Date()))
+                                showAnimation = true
+                            }
+                        )
+                        GridItem(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight(),
+                            index = 1,
+                            title = "달성율",
+                            progress = progress
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(IntrinsicSize.Min),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        // GridItem 추가 영역
+                    }
                 }
             }
-        )
+
+            Spacer(
+                modifier = Modifier
+                    .padding(vertical = 10.dp, horizontal = 10.dp)
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(Color.LightGray)
+            )
+
+            Column(modifier = Modifier.weight(1f)) {
+                // 2. WeekCalendarView에 상태(actions)를 파라미터로 전달
+                WeekCalendarView(actions = actions)
+            }
+        }
+
+        if (showAnimation) {
+            LaunchedEffect(showAnimation) {
+                // Grow
+                size.animateTo(
+                    targetValue = 200f,
+                    animationSpec = tween(durationMillis = 1000)
+                )
+                // Shrink
+                size.animateTo(
+                    targetValue = 20f,
+                    animationSpec = tween(durationMillis = 1000)
+                )
+                showAnimation = false
+                size.snapTo(20f) // Reset for next time
+                onAnimationConsumed()
+            }
+
+            Image(
+                painter = painterResource(id = R.drawable.med_routine_256),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(size.value.dp)
+                    .align(Alignment.Center)
+            )
+        }
+
+        if (showDialog) {
+            AlertDialog(
+                onDismissRequest = { showDialog = false },
+                title = { Text("확인") },
+                text = { Text("약을 복용하셨습니까?") },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            Toast.makeText(context, "Yes", Toast.LENGTH_SHORT).show()
+                            showDialog = false
+                        }
+                    ) {
+                        Text("Yes")
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = {
+                            Toast.makeText(context, "No", Toast.LENGTH_SHORT).show()
+                            showDialog = false
+                        }
+                    ) {
+                        Text("No")
+                    }
+                }
+            )
+        }
     }
 }
 

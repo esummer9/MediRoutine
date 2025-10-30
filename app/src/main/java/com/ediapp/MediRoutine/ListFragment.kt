@@ -247,12 +247,11 @@ fun CalendarView(currentDate: Calendar, highlightedDays: List<Int>, onDayClick: 
     val days = (1..daysInMonth).toList()
     val emptyCells = List(firstDayOfWeek) { }
 
-    val dayOfWeekLabels = listOf("일", "월", "화", "수", "목", "금", "토")
     val today = Calendar.getInstance()
 
     Column(modifier = Modifier.padding(top = 16.dp)) {
         Row(Modifier.fillMaxWidth()) {
-            dayOfWeekLabels.forEachIndexed { index, label ->
+            dayNames.forEachIndexed { index, label ->
                 val color = when (index) {
                     0 -> Color.Red
                     6 -> Color.Blue

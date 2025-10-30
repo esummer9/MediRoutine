@@ -53,6 +53,8 @@ import androidx.core.content.ContextCompat
 import com.ediapp.MediRoutine.ui.theme.MyApplicationTheme
 
 class MainActivity : ComponentActivity() {
+    private var showAnimation = mutableStateOf(false)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -77,7 +79,9 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             MyApplicationTheme {
-                MyApplicationApp()
+                MyApplicationApp(showAnimation = showAnimation.value) {
+                    showAnimation.value = false
+                }
             }
         }
     }
@@ -85,6 +89,16 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         Log.d("MainActivity", "onResume")
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        if (intent?.action == "com.ediapp.MediRoutine.ACTION_TAKE_MEDICINE") {
+            showAnimation.value = true
+            val dbHelper = DatabaseHelper(this)
+            dbHelper.addDrugAction()
+            NotificationHelper.showNotification(this)
+        }
     }
 
     private fun createNotificationChannel() {
@@ -104,7 +118,7 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MyApplicationApp() {
+fun MyApplicationApp(showAnimation: Boolean, onAnimationConsumed: () -> Unit) {
     val context = LocalContext.current
     var showPermissionDialog by remember { mutableStateOf(false) }
 
@@ -221,7 +235,7 @@ fun MyApplicationApp() {
         ) { innerPadding ->
             Box(modifier = Modifier.padding(innerPadding)) {
                 when (currentDestination) {
-                    AppDestinations.HOME -> HomeFragment()
+                    AppDestinations.HOME -> HomeFragment(showAnimation, onAnimationConsumed)
                     AppDestinations.LISTS -> ListFragment()
 //                    AppDestinations.REFILL -> RefillFragment()
                     AppDestinations.HELPS -> HelpsFragment()

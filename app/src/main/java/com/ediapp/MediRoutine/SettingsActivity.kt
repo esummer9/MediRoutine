@@ -7,13 +7,32 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,8 +67,20 @@ class SettingsActivity : ComponentActivity() {
                     morningEnabled = morningEnabled,
                     selectedTime = selectedTime,
                     onMedNameChange = { medName = it },
-                    onMorningEnabledChange = { morningEnabled = it },
-                    onSelectedTimeChange = { selectedTime = it }
+                    onMorningEnabledChange = { isEnabled ->
+                        morningEnabled = isEnabled
+                        if (isEnabled) {
+                            scheduleNotification(this, selectedTime)
+                        } else {
+                            cancelNotification(this)
+                        }
+                    },
+                    onSelectedTimeChange = { time ->
+                        selectedTime = time
+                        if (morningEnabled) {
+                            scheduleNotification(this, time)
+                        }
+                    }
                 )
             }
         }
@@ -64,17 +95,17 @@ class SettingsActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(medName: String,
-                   morningEnabled: Boolean,
-                   selectedTime: String,
-                   onMedNameChange: (String) -> Unit,
-                   onMorningEnabledChange: (Boolean) -> Unit,
-                   onSelectedTimeChange: (String) -> Unit) {
+fun SettingsScreen(
+    medName: String,
+    morningEnabled: Boolean,
+    selectedTime: String,
+    onMedNameChange: (String) -> Unit,
+    onMorningEnabledChange: (Boolean) -> Unit,
+    onSelectedTimeChange: (String) -> Unit
+) {
     val context = LocalContext.current
     // SharedPreferences 인스턴스 가져오기 (MainActivity와 동일한 키 사용)
     val prefs = remember { context.getSharedPreferences("MediRoutine_prefs", Context.MODE_PRIVATE) }
-
-    var showDailyReport by remember { mutableStateOf(false) } // Set initial state as needed
 
     Scaffold(
         topBar = {
@@ -149,13 +180,12 @@ fun SettingsScreen(medName: String,
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-            if(showDailyReport)
-                MedTimeRow(
-                    label = "일일보고",
-                    checked = morningEnabled,
+            MedTimeRow(
+                label = "일일보고",
+                checked = morningEnabled,
 
-                    onCheckedChange = onMorningEnabledChange // Use the callback to update state
-                )
+                onCheckedChange = onMorningEnabledChange // Use the callback to update state
+            )
         }
     }
 }
@@ -170,7 +200,7 @@ fun MedTimeRow(label: String, checked: Boolean, onCheckedChange: (Boolean) -> Un
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
 
-    ) {
+        ) {
         Text(text = label, fontSize = 16.sp)
         Switch(checked = checked, onCheckedChange = onCheckedChange)
     }
