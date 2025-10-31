@@ -1,6 +1,5 @@
 package com.ediapp.MediRoutine
 
-import com.ediapp.MediRoutine.model.Action
 import android.app.DatePickerDialog
 import android.content.Context
 import android.widget.Toast
@@ -19,6 +18,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -51,6 +51,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ediapp.MediRoutine.model.Action
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -90,7 +91,7 @@ fun ListFragment() {
             FloatingActionButton(onClick = {
                 dateForDialog = null
                 showDialog = true
-            }) {
+            }, shape = CircleShape) {
                 Icon(Icons.Filled.Add, contentDescription = "Add")
             }
         }
