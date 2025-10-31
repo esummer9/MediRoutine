@@ -3,6 +3,8 @@ package com.ediapp.MediRoutine
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -279,9 +281,25 @@ fun GridItem(modifier: Modifier = Modifier, index : Int = 1, title: String, font
                     else -> Color.Black
                 }
 
+                val alpha = remember { Animatable(1f) }
+
+                LaunchedEffect(Unit) {
+                    alpha.animateTo(
+                        targetValue = 0f,
+                        animationSpec = infiniteRepeatable(
+                            animation = keyframes {
+                                durationMillis = 2000
+                                1f at 0
+                                0f at 1000
+                                1f at 2000
+                            }
+                        )
+                    )
+                }
+
                 Text(text = title, fontSize = fontSize, color = Color.Black)
                 Text(text = "($dayOfWeekDisplayName)", fontSize = fontSize, color = color)
-                Text(text = dayOfMonth, fontSize = 28.sp, color = color)
+                Text(text = dayOfMonth, fontSize = 26.sp, color = color.copy(alpha = alpha.value))
                 Button(
                     onClick = onDrugTaken,
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Gray) // Set button color
@@ -313,7 +331,7 @@ fun GridItem(modifier: Modifier = Modifier, index : Int = 1, title: String, font
                     )
                     Text(
                         text = "$progress%",
-                        fontSize = 28.sp,
+                        fontSize = 26.sp,
                         color = Color.Black
                     )
                 }
@@ -379,8 +397,9 @@ fun WeekCalendarView(actions: List<Action>) {
                     Box(
                         modifier = Modifier
                             .weight(1f)
-                            .padding(6.dp)
-                            .background(backgroundColor, shape = RoundedCornerShape(10.dp))
+                            .padding(7.dp)
+                            .background(backgroundColor,
+                                shape = RoundedCornerShape(10.dp))
                         ,
                         contentAlignment = Alignment.Center
                     ) {
