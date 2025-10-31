@@ -64,7 +64,7 @@ fun RefillFragment() {
 
     fun refetchActions() {
         val monthStr = monthFormatForQuery.format(currentDate.time)
-        actions = dbHelper.getDrugListsByMonth(month = monthStr, orderBy = "act_registered_at", orderDirection = "DESC")
+        actions = dbHelper.getDrugListsByMonthOrWeek(month = monthStr, orderBy = "act_registered_at", orderDirection = "DESC")
     }
 
     LaunchedEffect(currentDate) {

@@ -43,6 +43,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.glance.visibility
 import com.ediapp.MediRoutine.ui.theme.MyApplicationTheme
 import java.util.Calendar
 
@@ -249,7 +250,7 @@ fun SettingsScreen(
 @Composable
 fun MedTimeRow(label: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
     Row(
-        modifier = Modifier
+        modifier = Modifier.visibility(false)
             .fillMaxWidth()
             .padding(vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,

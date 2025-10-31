@@ -114,13 +114,18 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             return 0
     }
 
-    fun getDrugListsByMonth(month: String?, orderBy: String = COL_ID, orderDirection: String = "DESC"): List<Action> {
+    fun getDrugListsByMonthOrWeek(monthOrWeek: Int = 1, month: String?, orderBy: String = COL_ID, orderDirection: String = "DESC"): List<Action> {
         val actions = mutableListOf<Action>()
         val db = this.readableDatabase
 
-        val monthSql = if (month != null) "strftime('%Y-%m', $COL_ACT_REGISTERED_AT) = '$month'" else "1=1"
+        var whereSql = if (monthOrWeek == 1) "strftime('%Y-%m', $COL_ACT_REGISTERED_AT) = '$month'" else "1=1"
 
-        val sql = "SELECT * FROM $TABLE_NAME WHERE $monthSql AND $COL_ACT_DELETED_AT IS NULL ORDER BY $orderBy $orderDirection"
+        if (monthOrWeek == 2) {
+            whereSql = "strftime('%Y-%m-%d', $COL_ACT_REGISTERED_AT) >= '$month'"
+        }
+
+
+        val sql = "SELECT * FROM $TABLE_NAME WHERE $whereSql AND $COL_ACT_DELETED_AT IS NULL ORDER BY $orderBy $orderDirection"
 
         Log.d("DatabaseHelper", "SQL: $sql")
 

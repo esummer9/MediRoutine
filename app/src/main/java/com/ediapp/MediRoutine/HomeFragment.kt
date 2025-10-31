@@ -73,7 +73,7 @@ fun HomeFragment(showAnimationFromNotification: Boolean = false, onAnimationCons
     var totalDays by remember { mutableStateOf(0L) }
 
     val monthFormat = SimpleDateFormat("yyyy-MM", Locale.getDefault())
-    var actions by remember { mutableStateOf(dbHelper.getDrugListsByMonth(monthFormat.format(Date()))) }
+    var actions by remember { mutableStateOf(dbHelper.getDrugListsByMonthOrWeek(monthOrWeek = 2, monthFormat.format(Date()))) }
 
     var showAnimation by remember { mutableStateOf(false) }
     val size = remember { Animatable(20f) }
@@ -98,7 +98,9 @@ fun HomeFragment(showAnimationFromNotification: Boolean = false, onAnimationCons
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
-                actions = dbHelper.getDrugListsByMonth(monthFormat.format(Date()))
+                val start = getFourteenDaysAgoDate(-14)
+                actions =
+                    dbHelper.getDrugListsByMonthOrWeek(monthOrWeek = 2, sdf.format(start))
                 progress = dbHelper.getDrugTodayCount()
                 updateAchievementRate()
             }
@@ -160,8 +162,10 @@ fun HomeFragment(showAnimationFromNotification: Boolean = false, onAnimationCons
                                     .makeText(context, "$medNickName 을 복용했습니다. (ID: $newId)", Toast.LENGTH_SHORT)
                                     .show()
                                 progress = dbHelper.getDrugTodayCount()
+
+                                val start = getFourteenDaysAgoDate(-14)
                                 actions =
-                                    dbHelper.getDrugListsByMonth(monthFormat.format(Date()))
+                                    dbHelper.getDrugListsByMonthOrWeek(monthOrWeek = 2, sdf.format(start))
                                 updateAchievementRate()
                                 showAnimation = true
                             }
