@@ -43,7 +43,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.glance.visibility
+
 import com.ediapp.MediRoutine.ui.theme.MyApplicationTheme
 import java.util.Calendar
 
@@ -236,12 +236,11 @@ fun SettingsScreen(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-            MedTimeRow(
-                label = "일일보고",
-                checked = morningEnabled,
-
-                onCheckedChange = onMorningEnabledChange // Use the callback to update state
-            )
+//            MedTimeRow(
+//                label = "일일보고",
+//                checked = morningEnabled,
+//                onCheckedChange = onMorningEnabledChange // Use the callback to update state
+//            )
         }
     }
 }
@@ -250,7 +249,7 @@ fun SettingsScreen(
 @Composable
 fun MedTimeRow(label: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
     Row(
-        modifier = Modifier.visibility(false)
+        modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
