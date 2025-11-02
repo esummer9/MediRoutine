@@ -43,6 +43,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -261,6 +262,7 @@ fun HomeFragment(showAnimationFromNotification: Boolean = false, onAnimationCons
     }
 }
 
+
 @Composable
 fun GridItem(modifier: Modifier = Modifier, index : Int = 1, title: String, fontSize: TextUnit = 18.sp, progress: Int = 0, maxProgress: Int = 100, days: Long = 0, onDrugTaken: () -> Unit = {}) {
     Box(
@@ -348,6 +350,7 @@ fun GridItem(modifier: Modifier = Modifier, index : Int = 1, title: String, font
 }
 
 data class CalendarDay(val dayNumber: String, val fullDate: String)
+
 
 @Composable
 fun WeekCalendarView(actions: List<Action>) {
