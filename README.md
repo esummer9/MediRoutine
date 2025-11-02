@@ -1,5 +1,14 @@
 # MediRoutine
 
+## 툥계정보 활용
+  
+| 제목 | 참조 |
+ -- | -- |
+| KOSIS 국가통계포널    | https://kosis.kr/search/search.do   |
+| 카드뉴스    | https://kosis.kr/easyViewStatis/cardNewsList.do    |
+| 경제순환시계    | https://kosis.kr/visual/bcc/index/index.do?lang=ko&age=economyBoard   |
+
+
 ## create a new repository on the command line
 ```shell 
 echo "# MediRoutine" >> README.md
