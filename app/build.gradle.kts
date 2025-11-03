@@ -2,8 +2,9 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-//    id("com.android.application")
-    id("com.google.gms.google-services") version "4.4.4" apply false
+    //    id("com.android.application")
+//    id("com.google.gms.google-services") version "4.4.4" apply false
+    alias(libs.plugins.google.gms.google.services)
 }
 
 android {
@@ -62,6 +63,8 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
+    // Firebase Remote Config
+    implementation("com.google.firebase:firebase-config")
     implementation(platform("com.google.firebase:firebase-bom:34.4.0"))
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-auth") // 예를 들어 Firebase 인증도 추가할 경우

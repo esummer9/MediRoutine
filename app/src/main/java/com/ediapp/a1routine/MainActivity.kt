@@ -50,12 +50,64 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat
 import com.ediapp.a1routine.ui.theme.MyApplicationTheme
-
+import com.google.firebase.Firebase
+import com.google.firebase.remoteconfig.ConfigUpdate
+import com.google.firebase.remoteconfig.ConfigUpdateListener
+import com.google.firebase.remoteconfig.FirebaseRemoteConfig
+import com.google.firebase.remoteconfig.FirebaseRemoteConfigException
+import com.google.firebase.remoteconfig.get
+import com.google.firebase.remoteconfig.remoteConfig
+import com.google.firebase.remoteconfig.remoteConfigSettings
 class MainActivity : ComponentActivity() {
     private var showAnimation = mutableStateOf(false)
 
+    private val remoteConfig: FirebaseRemoteConfig = Firebase.remoteConfig
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val configSettings = remoteConfigSettings {
+            minimumFetchIntervalInSeconds = 3600
+        }
+        remoteConfig.setConfigSettingsAsync(configSettings)
+
+        remoteConfig.setDefaultsAsync(R.xml.remote_config_defaults)
+
+        remoteConfig.fetchAndActivate()
+            .addOnCompleteListener(this) { task ->
+                if (task.isSuccessful) {
+                    val updated = task.result
+                    Log.d(TAG, "Config params updated: $updated")
+                    Toast.makeText(
+                        this,
+                        "Fetch and activate succeeded",
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                } else {
+                    Toast.makeText(
+                        this,
+                        "Fetch failed",
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                }
+                displayWelcomeMessage()
+            }
+
+        remoteConfig.addOnConfigUpdateListener(object : ConfigUpdateListener {
+            override fun onUpdate(configUpdate: ConfigUpdate) {
+                Log.d(TAG, "Updated keys: " + configUpdate.updatedKeys)
+
+                if (configUpdate.updatedKeys.contains("welcome_message")) {
+                    remoteConfig.activate().addOnCompleteListener {
+                        displayWelcomeMessage()
+                    }
+                }
+            }
+
+            override fun onError(error: FirebaseRemoteConfigException) {
+                Log.w(TAG, "Config update error with code: " + error.code, error)
+            }
+        })
 
         val dbHelper = DatabaseHelper(this)
         dbHelper.writableDatabase
@@ -112,6 +164,23 @@ class MainActivity : ComponentActivity() {
                 getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
         }
+    }
+
+    private fun displayWelcomeMessage() {
+        val version = remoteConfig["AppName"].asString()
+        if (version.isNotBlank()) {
+            Log.d(TAG, "Config params AppName: $version")
+        }
+    }
+
+    companion object {
+
+        private const val TAG = "MainActivity"
+
+        // Remote Config keys
+        private const val LOADING_PHRASE_CONFIG_KEY = "loading_phrase"
+        private const val WELCOME_MESSAGE_KEY = "welcome_message"
+        private const val WELCOME_MESSAGE_CAPS_KEY = "welcome_message_caps"
     }
 }
 
