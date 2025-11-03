@@ -20,8 +20,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun HelpsFragment() {
     val images = listOf(
-        R.drawable.home_guide,
-        R.drawable.list_guide,
+        R.drawable.fragment_home,
+        R.drawable.fragment_list,
         R.drawable.activity_setting,
     )
 
