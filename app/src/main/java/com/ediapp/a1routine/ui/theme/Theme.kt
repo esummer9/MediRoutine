@@ -1,4 +1,4 @@
-package com.ediapp.MediRoutine.ui.theme
+package com.ediapp.a1routine.ui.theme
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.lightColorScheme

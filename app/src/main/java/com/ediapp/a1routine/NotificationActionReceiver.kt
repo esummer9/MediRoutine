@@ -1,4 +1,4 @@
-package com.ediapp.MediRoutine
+package com.ediapp.a1routine
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -8,7 +8,7 @@ import android.widget.Toast
 class NotificationActionReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         when (intent.action) {
-            "com.ediapp.MediRoutine.ACTION_TAKE_MEDICINE" -> {
+            "com.ediapp.a1routine.ACTION_TAKE_MEDICINE" -> {
                 val dbHelper = DatabaseHelper(context)
                 val newId = dbHelper.addDrugAction()
 
@@ -33,7 +33,7 @@ class NotificationActionReceiver : BroadcastReceiver() {
                 context.startActivity(intent)
 
             }
-            "com.ediapp.MediRoutine.ACTION_NOTIFICATION_DISMISSED" -> {
+            "com.ediapp.a1routine.ACTION_NOTIFICATION_DISMISSED" -> {
                 val mainActivityIntent = Intent(context, MainActivity::class.java).apply {
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
                 }

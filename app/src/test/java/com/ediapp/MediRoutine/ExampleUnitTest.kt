@@ -1,4 +1,4 @@
-package com.ediapp.MediRoutine
+package com.ediapp.a1routine
 
 import org.junit.Test
 

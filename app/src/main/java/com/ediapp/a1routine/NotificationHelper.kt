@@ -1,4 +1,4 @@
-package com.ediapp.MediRoutine
+package com.ediapp.a1routine
 
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -22,12 +22,12 @@ object NotificationHelper {
         val drugActionCount = dbHelper.getDrugTodayCount()
 
 //        val intent = Intent(context, MainActivity::class.java).apply {
-//            action = "com.ediapp.MediRoutine.ACTION_TAKE_MEDICINE"
+//            action = "com.ediapp.a1routine.ACTION_TAKE_MEDICINE"
 //            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
 //        }
 
         val intent = Intent(context, NotificationActionReceiver::class.java).apply {
-            action = "com.ediapp.MediRoutine.ACTION_TAKE_MEDICINE"
+            action = "com.ediapp.a1routine.ACTION_TAKE_MEDICINE"
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
 
@@ -36,7 +36,7 @@ object NotificationHelper {
         val pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
 
         val deleteIntent = Intent(context, NotificationActionReceiver::class.java).apply {
-            action = "com.ediapp.MediRoutine.ACTION_NOTIFICATION_DISMISSED"
+            action = "com.ediapp.a1routine.ACTION_NOTIFICATION_DISMISSED"
         }
         val deletePendingIntent = PendingIntent.getBroadcast(context, 1, deleteIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
 

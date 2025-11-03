@@ -7,13 +7,13 @@ plugins {
 }
 
 android {
-    namespace = "com.ediapp.MediRoutine"
+    namespace = "com.ediapp.a1routine"
     compileSdk {
         version = release(36)
     }
 
     defaultConfig {
-        applicationId = "com.ediapp.MediRoutine"
+        applicationId = "com.ediapp.a1routine"
         minSdk = 26
         targetSdk = 36
         versionCode = 1

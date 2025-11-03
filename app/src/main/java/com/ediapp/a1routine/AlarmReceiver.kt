@@ -1,4 +1,4 @@
-package com.ediapp.MediRoutine
+package com.ediapp.a1routine
 
 import android.content.BroadcastReceiver
 import android.content.Context

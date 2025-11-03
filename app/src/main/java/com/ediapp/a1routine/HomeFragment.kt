@@ -1,4 +1,4 @@
-package com.ediapp.MediRoutine
+package com.ediapp.a1routine
 
 import android.content.Context
 import android.widget.Toast
@@ -49,7 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import com.ediapp.MediRoutine.model.Action
+import com.ediapp.a1routine.model.Action
 import java.text.SimpleDateFormat
 import java.time.DayOfWeek
 import java.time.LocalDate

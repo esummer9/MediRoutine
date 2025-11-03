@@ -1,4 +1,4 @@
-package com.ediapp.MediRoutine
+package com.ediapp.a1routine
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
