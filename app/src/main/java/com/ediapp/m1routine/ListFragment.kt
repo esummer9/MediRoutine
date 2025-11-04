@@ -2,6 +2,11 @@ package com.ediapp.m1routine
 
 import android.app.DatePickerDialog
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.os.Build
+import android.util.Log
+import android.view.View
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -28,6 +33,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -45,17 +51,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ediapp.m1routine.model.Action
+import java.io.File
+import java.io.FileOutputStream
 import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Date
-import java.util.Locale
+import java.util.*
 
 enum class ViewType {
     CALENDAR, LIST
@@ -95,7 +103,8 @@ fun ListFragment() {
                 Icon(Icons.Filled.Add, contentDescription = "Add")
             }
         }
-    ) { paddingValues ->
+    ) {
+        paddingValues ->
         Column(
             modifier = Modifier
                 .padding(paddingValues)
@@ -185,6 +194,18 @@ fun ListFragment() {
                             }
                         }
                     )
+                    val view = LocalView.current
+                    Button(
+                        onClick = {
+                            saveCalendarViewAsImage(view, context)
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 16.dp)
+
+                    ) {
+                        Text("달력을 사진으로 기록", color = Color.White)
+                    }
                 }
             }
         }
@@ -323,6 +344,15 @@ fun CalendarView(currentDate: Calendar, highlightedDays: List<Int>, onDayClick: 
             }
         }
     }
+}
+
+// Function to save the CalendarView as an image
+private fun saveCalendarViewAsImage(view: View, context: Context) {
+    // Implementation for saving the image
+    // This part requires more context or specific implementation details
+    // For now, we'll just log a message
+    Log.d("ListFragment", "Save calendar view as image clicked")
+    Toast.makeText(context, "사진 저장 기능은 아직 구현되지 않았습니다.", Toast.LENGTH_SHORT).show()
 }
 
 

@@ -78,17 +78,17 @@ class MainActivity : ComponentActivity() {
                 if (task.isSuccessful) {
                     val updated = task.result
                     Log.d(TAG, "Config params updated: $updated")
-                    Toast.makeText(
-                        this,
-                        "Fetch and activate succeeded",
-                        Toast.LENGTH_SHORT,
-                    ).show()
+//                    Toast.makeText(
+//                        this,
+//                        "Fetch and activate succeeded",
+//                        Toast.LENGTH_SHORT,
+//                    ).show()
                 } else {
-                    Toast.makeText(
-                        this,
-                        "Fetch failed",
-                        Toast.LENGTH_SHORT,
-                    ).show()
+//                    Toast.makeText(
+//                        this,
+//                        "Fetch failed",
+//                        Toast.LENGTH_SHORT,
+//                    ).show()
                 }
                 displayWelcomeMessage()
             }
@@ -144,7 +144,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
-        if (intent?.action == "com.ediapp.MediRoutine.ACTION_TAKE_MEDICINE") {
+        if (intent?.action == "com.ediapp.m1routine.ACTION_TAKE_MEDICINE") {
             showAnimation.value = true
             val dbHelper = DatabaseHelper(this)
             dbHelper.addDrugAction()
