@@ -1,4 +1,4 @@
-package com.ediapp.a1routine
+package com.ediapp.m1routine
 
 import android.content.BroadcastReceiver
 import android.content.Context

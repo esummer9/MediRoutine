@@ -1,4 +1,4 @@
-package com.ediapp.a1routine
+package com.ediapp.m1routine
 
 import android.app.DatePickerDialog
 import android.widget.Toast
@@ -42,7 +42,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.ediapp.a1routine.model.Action
+import com.ediapp.m1routine.model.Action
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date

@@ -1,4 +1,4 @@
-package com.ediapp.a1routine
+package com.ediapp.m1routine
 
 import android.Manifest
 import android.app.NotificationChannel
@@ -49,7 +49,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat
-import com.ediapp.a1routine.ui.theme.MyApplicationTheme
+import com.ediapp.m1routine.ui.theme.MyApplicationTheme
 import com.google.firebase.Firebase
 import com.google.firebase.remoteconfig.ConfigUpdate
 import com.google.firebase.remoteconfig.ConfigUpdateListener

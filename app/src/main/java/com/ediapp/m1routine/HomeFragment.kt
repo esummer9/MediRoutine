@@ -1,4 +1,4 @@
-package com.ediapp.a1routine
+package com.ediapp.m1routine
 
 import android.content.Context
 import android.widget.Toast
@@ -43,13 +43,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import com.ediapp.a1routine.model.Action
+import com.ediapp.m1routine.model.Action
 import java.text.SimpleDateFormat
 import java.time.DayOfWeek
 import java.time.LocalDate

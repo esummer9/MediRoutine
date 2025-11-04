@@ -1,4 +1,4 @@
-package com.ediapp.a1routine
+package com.ediapp.m1routine
 
 import android.app.Activity
 import android.app.AlarmManager
@@ -44,7 +44,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-import com.ediapp.a1routine.ui.theme.MyApplicationTheme
+import com.ediapp.m1routine.ui.theme.MyApplicationTheme
 import java.util.Calendar
 
 class SettingsActivity : ComponentActivity() {

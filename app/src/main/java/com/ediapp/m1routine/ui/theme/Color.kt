@@ -1,4 +1,4 @@
-package com.ediapp.a1routine.ui.theme
+package com.ediapp.m1routine.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

@@ -1,11 +1,11 @@
-package com.ediapp.a1routine
+package com.ediapp.m1routine
 
 import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
-import com.ediapp.a1routine.model.Action
+import com.ediapp.m1routine.model.Action
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Date

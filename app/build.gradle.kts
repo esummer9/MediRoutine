@@ -8,13 +8,13 @@ plugins {
 }
 
 android {
-    namespace = "com.ediapp.a1routine"
+    namespace = "com.ediapp.m1routine"
     compileSdk {
         version = release(36)
     }
 
     defaultConfig {
-        applicationId = "com.ediapp.a1routine"
+        applicationId = "com.ediapp.m1routine"
         minSdk = 26
         targetSdk = 36
         versionCode = 1

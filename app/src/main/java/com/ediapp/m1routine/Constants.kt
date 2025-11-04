@@ -1,14 +1,12 @@
-package com.ediapp.a1routine
+package com.ediapp.m1routine
 
 import android.icu.util.Calendar
-import androidx.compose.foundation.layout.add
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 val dayNames = listOf("일", "월", "화", "수", "목", "금", "토")
 val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-
 
 enum class MonthOrWeek {
     MONTH,

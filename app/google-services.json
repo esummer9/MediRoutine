@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:780155849909:android:be5d7a3f5f4dceaa9b42fc",
+        "mobilesdk_app_id": "1:780155849909:android:f9f0ee9835436a779b42fc",
         "android_client_info": {
-          "package_name": "com.ediapp.a1routine"
+          "package_name": "com.ediapp.m1routine"
         }
       },
       "oauth_client": [],

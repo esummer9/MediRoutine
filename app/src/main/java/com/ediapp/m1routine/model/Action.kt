@@ -1,4 +1,4 @@
-package com.ediapp.a1routine.model
+package com.ediapp.m1routine.model
 
 data class Action(
     val id: Long,

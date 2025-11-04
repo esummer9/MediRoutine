@@ -1,4 +1,4 @@
-package com.ediapp.a1routine
+package com.ediapp.m1routine
 
 import android.app.DatePickerDialog
 import android.content.Context
@@ -51,7 +51,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.ediapp.a1routine.model.Action
+import com.ediapp.m1routine.model.Action
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -325,90 +325,6 @@ fun CalendarView(currentDate: Calendar, highlightedDays: List<Int>, onDayClick: 
     }
 }
 
-@Composable
-fun AddActionDialog(
-    initialCalendar: Calendar? = null,
-    onDismiss: () -> Unit,
-    onConfirm: (Date) -> Unit
-) {
-    val context = LocalContext.current
-    val calendar = remember { initialCalendar ?: Calendar.getInstance() }
-
-    var year by remember { mutableStateOf(calendar.get(Calendar.YEAR)) }
-    var month by remember { mutableStateOf(calendar.get(Calendar.MONTH)) }
-    var dayOfMonth by remember { mutableStateOf(calendar.get(Calendar.DAY_OF_MONTH)) }
-
-    var hour by remember { mutableStateOf(calendar.get(Calendar.HOUR_OF_DAY).toString()) }
-
-    val datePickerDialog = DatePickerDialog(
-        context,
-        { _, selectedYear, selectedMonth, selectedDayOfMonth ->
-            year = selectedYear
-            month = selectedMonth
-            dayOfMonth = selectedDayOfMonth
-        }, year, month, dayOfMonth
-    ).apply {
-        datePicker.maxDate = System.currentTimeMillis()
-    }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(text = "복용입력") },
-        text = {
-            Column {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "$year-${month + 1}-$dayOfMonth",
-                        fontWeight = FontWeight.Bold, fontSize=20.sp)
-
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Button(onClick = { datePickerDialog.show() }) {
-                        Text("날짜 변경", color = Color.White)
-                    }
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = hour,
-                    onValueChange = { newValue ->
-                        val filtered = newValue.filter { it.isDigit() }
-                        if (filtered.isEmpty() || (filtered.toIntOrNull() ?: -1) in 0..23) {
-                            hour = filtered
-                        }
-                    },
-                    label = { Text("시간 (0-23)") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    val finalHour = hour.toIntOrNull()
-                    if (finalHour == null || finalHour !in 0..23) {
-                        Toast.makeText(context, "시간을 0에서 23 사이로 입력해주세요.", Toast.LENGTH_SHORT).show()
-                    } else {
-                        val finalCalendar = Calendar.getInstance().apply {
-                            set(year, month, dayOfMonth, finalHour, 0, 0)
-                        }
-                        if (finalCalendar.time.after(Date())) {
-                            Toast.makeText(context, "미래 날짜는 선택할 수 없습니다.", Toast.LENGTH_SHORT).show()
-                        } else {
-                            onConfirm(finalCalendar.time)
-                        }
-                    }
-                }
-            ) {
-                Text("확인")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("취소")
-            }
-        }
-    )
-}
 
 @Composable
 fun ActionCard(action: Action, onDelete: () -> Unit) {
