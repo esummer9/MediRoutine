@@ -17,7 +17,7 @@ class AlarmReceiver : BroadcastReceiver() {
         val actKey = "drug-$dateString"
 
         if (!dbHelper.isDrugExists(actKey)) {
-            NotificationHelper.showMedicationNotification(context)
+            NotificationHelper.showDailyCheckNotification(context)
         }
     }
 }

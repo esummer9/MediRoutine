@@ -15,7 +15,7 @@ object NotificationHelper {
 
     private const val MEDICATION_CHANNEL_ID = "medi_routine_channel"
 
-    fun showMedicationNotification(context: Context) {
+    fun showDailyCheckNotification(context: Context) {
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         val intent = Intent(context, MainActivity::class.java).apply {
@@ -36,7 +36,7 @@ object NotificationHelper {
         notificationManager.notify(2, notification)
     }
 
-    fun showNotification(context: Context) {
+    fun showAlwaysNotification(context: Context) {
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val today = Date()
         val dateFormat = SimpleDateFormat("yyyy-MM-dd(E)", Locale.KOREAN)
@@ -45,18 +45,11 @@ object NotificationHelper {
         val dbHelper = DatabaseHelper(context)
         val drugActionCount = dbHelper.getDrugTodayCount()
 
-//        val intent = Intent(context, MainActivity::class.java).apply {
-//            action = "com.ediapp.m1routine.ACTION_TAKE_MEDICINE"
-//            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-//        }
-
         val intent = Intent(context, NotificationActionReceiver::class.java).apply {
             action = "com.ediapp.m1routine.ACTION_TAKE_MEDICINE"
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
 
-
-//        val pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         val pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
 
         val deleteIntent = Intent(context, NotificationActionReceiver::class.java).apply {
@@ -65,8 +58,6 @@ object NotificationHelper {
         val deletePendingIntent = PendingIntent.getBroadcast(context, 1, deleteIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
 
         val mainActivityIntent = Intent(context, MainActivity::class.java).apply {
-            // Optional: Add flags if you want specific behavior when MainActivity is launched
-            // For example, to clear the back stack and start MainActivity as a new task:
              flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
 
@@ -76,14 +67,12 @@ object NotificationHelper {
             .setContentTitle("$dateString 약 복용")
             .setSmallIcon(R.drawable.med_routine)
             .setLargeIcon(BitmapFactory.decodeResource(context.resources, R.drawable.med_routine)) // Add this line
-
             .setContentText("약복용 : $drugActionCount")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setOngoing(true)
             .addAction(R.drawable.med_routine, "복용", pendingIntent)
             .setDeleteIntent(deletePendingIntent)
             .setContentIntent(mainActivityPendingIntent) // This sets the intent for tapping the notification itself
-
             .build()
 
         notificationManager.notify(1, notification)

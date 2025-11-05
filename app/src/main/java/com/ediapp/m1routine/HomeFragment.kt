@@ -131,7 +131,7 @@ fun HomeFragment(showAnimationFromNotification: Boolean = false, onAnimationCons
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
-            Column(modifier = Modifier.weight(1f)) {
+            Column(modifier = Modifier.weight(1.2f)) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -214,7 +214,7 @@ fun HomeFragment(showAnimationFromNotification: Boolean = false, onAnimationCons
                     .background(Color.LightGray)
             )
 
-            Column(modifier = Modifier.weight(1f)) {
+            Column(modifier = Modifier.weight(.8f)) {
                 WeekCalendarView(actions = actions)
             }
         }

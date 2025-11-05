@@ -23,7 +23,7 @@ class NotificationActionReceiver : BroadcastReceiver() {
 //                Toast.makeText(context, "복용했습니다. (ID: $newId)", Toast.LENGTH_SHORT).show()
 
                 // Update the notification using the helper
-                NotificationHelper.showNotification(context)
+                NotificationHelper.showAlwaysNotification(context)
 
                 val intent = Intent(context, MainActivity::class.java).apply {
                     // 이미 실행 중인 Activity를 새로 생성하지 않고 맨 위로 가져옵니다.

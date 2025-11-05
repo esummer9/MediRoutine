@@ -148,7 +148,7 @@ class MainActivity : ComponentActivity() {
             showAnimation.value = true
             val dbHelper = DatabaseHelper(this)
             dbHelper.addDrugAction()
-            NotificationHelper.showNotification(this)
+            NotificationHelper.showAlwaysNotification(this)
         }
     }
 
@@ -195,7 +195,7 @@ fun MyApplicationApp(showAnimation: Boolean, onAnimationConsumed: () -> Unit) {
         contract = ActivityResultContracts.RequestPermission(),
         onResult = { isGranted ->
             if (isGranted) {
-                NotificationHelper.showNotification(context)
+                NotificationHelper.showAlwaysNotification(context)
             } else {
                 Toast.makeText(context, "알림 권한이 필요합니다.", Toast.LENGTH_SHORT).show()
             }
@@ -217,12 +217,12 @@ fun MyApplicationApp(showAnimation: Boolean, onAnimationConsumed: () -> Unit) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             val permissionStatus = ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
             if (permissionStatus == PackageManager.PERMISSION_GRANTED) {
-                NotificationHelper.showNotification(context)
+                NotificationHelper.showAlwaysNotification(context)
             } else {
                 notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         } else {
-            NotificationHelper.showNotification(context)
+            NotificationHelper.showAlwaysNotification(context)
         }
 
         if (!Settings.canDrawOverlays(context)) {
