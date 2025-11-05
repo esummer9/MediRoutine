@@ -228,7 +228,7 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             var expanded by remember { mutableStateOf(false) }
-            val times = (6..24).map { String.format(Locale.getDefault(), "%02d:00", it) }
+            val times = (4..24).map { String.format(Locale.getDefault(), "%02d:00", it) }
 
             ExposedDropdownMenuBox(
                 expanded = expanded,
