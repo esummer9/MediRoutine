@@ -1,13 +1,13 @@
 # MediRoutine
 
 ## 앱등록
-  https://play.google.com/apps/internaltest/4701188224483015386
+  - https://play.google.com/apps/internaltest/4701188224483015386
 
 
 ## 통계정보 활용
 <!--  -->
 | 제목            | 참조 |
- ---------------| -- |
+| --| -- |
 | KOSIS 국가통계포털 | https://kosis.kr/search/search.do |
 | 카드뉴스          | https://kosis.kr/easyViewStatis/cardNewsList.do |
 | 경제순환시계       | https://kosis.kr/visual/bcc/index/index.do?lang=ko&age=economyBoard |
