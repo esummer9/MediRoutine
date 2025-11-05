@@ -324,7 +324,7 @@ fun CalendarView(currentDate: Calendar, highlightedDays: List<Int>, onDayClick: 
 
                 Box(
                     modifier = Modifier
-                        .size(50.dp)
+                        .size(48.dp)
                         .padding(3.dp)
                         .clickable(enabled = !isFuture) { onDayClick(day) }
                         .background(

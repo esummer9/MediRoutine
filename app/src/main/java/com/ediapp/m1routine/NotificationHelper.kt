@@ -1,3 +1,4 @@
+
 package com.ediapp.m1routine
 
 import android.app.NotificationManager
@@ -11,6 +12,29 @@ import java.util.Date
 import java.util.Locale
 
 object NotificationHelper {
+
+    private const val MEDICATION_CHANNEL_ID = "medi_routine_channel"
+
+    fun showMedicationNotification(context: Context) {
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        val pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+
+        val notification = NotificationCompat.Builder(context, MEDICATION_CHANNEL_ID)
+            .setContentTitle("약 복용 시간입니다")
+            .setContentText("오늘 약을 아직 복용하지 않으셨습니다.\n잊지말고 복용하세요.")
+            .setSmallIcon(R.drawable.med_routine)
+            .setLargeIcon(BitmapFactory.decodeResource(context.resources, R.drawable.med_routine))
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .build()
+
+        notificationManager.notify(2, notification)
+    }
 
     fun showNotification(context: Context) {
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager

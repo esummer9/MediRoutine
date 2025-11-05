@@ -311,7 +311,7 @@ fun Latest30day(actionsByDate: Map<String, List<Action>>) {
 
                 Box(
                     modifier = Modifier
-                        .width(28.dp)
+                        .width(23.dp)
                         .height(20.dp)
                         .padding(1.dp)
                         .background(color = color)

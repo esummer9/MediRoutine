@@ -1,15 +1,21 @@
 package com.ediapp.m1routine
 
+import android.Manifest
 import android.app.Activity
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,7 +25,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -43,9 +49,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
+import androidx.core.content.ContextCompat
+import androidx.core.content.edit
 import com.ediapp.m1routine.ui.theme.MyApplicationTheme
 import java.util.Calendar
+import java.util.Locale
 
 class SettingsActivity : ComponentActivity() {
 
@@ -59,7 +67,7 @@ class SettingsActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        prefs = applicationContext.getSharedPreferences("MediRoutine_prefs", Context.MODE_PRIVATE)
+        prefs = getSharedPreferences("MediRoutine_prefs", MODE_PRIVATE)
 
         // Load initial settings from SharedPreferences
         medName = prefs.getString("med_name", "") ?: ""
@@ -78,17 +86,9 @@ class SettingsActivity : ComponentActivity() {
                     onMedNickNameChange = { medNickName = it },
                     onMorningEnabledChange = { isEnabled ->
                         morningEnabled = isEnabled
-                        if (isEnabled) {
-                            scheduleNotification(this, selectedTime)
-                        } else {
-                            cancelNotification(this)
-                        }
                     },
                     onSelectedTimeChange = { time ->
                         selectedTime = time
-                        if (morningEnabled) {
-                            scheduleNotification(this, time)
-                        }
                     }
                 )
             }
@@ -103,6 +103,17 @@ class SettingsActivity : ComponentActivity() {
 
 fun scheduleNotification(context: Context, time: String) {
     val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        if (!alarmManager.canScheduleExactAlarms()) {
+            Intent().also {
+                it.action = Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM
+                context.startActivity(it)
+            }
+            return
+        }
+    }
+
     val intent = Intent(context, AlarmReceiver::class.java)
     val pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
 
@@ -120,11 +131,11 @@ fun scheduleNotification(context: Context, time: String) {
         calendar.add(Calendar.DATE, 1)
     }
 
-//    alarmManager.setExactAndAllowWhileIdle(
-//        AlarmManager.RTC_WAKEUP,
-//        calendar.timeInMillis,
-//        pendingIntent
-//    )
+    alarmManager.setExactAndAllowWhileIdle(
+        AlarmManager.RTC_WAKEUP,
+        calendar.timeInMillis,
+        pendingIntent
+    )
 }
 
 fun cancelNotification(context: Context) {
@@ -151,6 +162,19 @@ fun SettingsScreen(
     // SharedPreferences 인스턴스 가져오기 (MainActivity와 동일한 키 사용)
     val prefs = remember { context.getSharedPreferences("MediRoutine_prefs", Context.MODE_PRIVATE) }
 
+    val requestPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted: Boolean ->
+            if (isGranted) {
+                scheduleNotification(context, selectedTime)
+                Toast.makeText(context, "알림이 설정되었습니다.", Toast.LENGTH_SHORT).show()
+            } else {
+                onMorningEnabledChange(false) // Revert switch state
+                Toast.makeText(context, "알림 권한이 없어 알림을 설정할 수 없습니다.", Toast.LENGTH_LONG).show()
+            }
+        }
+    )
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -166,7 +190,7 @@ fun SettingsScreen(
                         // Activity 종료
                         (context as? Activity)?.finish()
                     }) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
                     }
                 }
             )
@@ -183,9 +207,10 @@ fun SettingsScreen(
                 value = medName,
                 onValueChange = onMedNameChange, // Use the callback to update state
                 label = { Text("약이름") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true, // Set single line to hide the newline
             )
-            Text("\uD83D\uDC8A 네오텔미, 메트포르민 ...")
+            Text("💊 네오텔미, 메트포르민 ...")
             Spacer(modifier = Modifier.height(32.dp))
 
             OutlinedTextField(
@@ -194,8 +219,7 @@ fun SettingsScreen(
                 label = { Text("별명") },
                 modifier = Modifier.fillMaxWidth()
             )
-            Text("\uD83D\uDC8A 비타민,영양제,잘먹자")
-            Text("\uD83D\uDD08 공유&통계에 사용합니다!")
+            Text("💊 비타민,영양제,혈압약.  📢 공유&통계에 사용")
             Spacer(modifier = Modifier.height(32.dp))
 
 
@@ -204,7 +228,7 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             var expanded by remember { mutableStateOf(false) }
-            val times = (6..24).map { String.format("%02d:00", it) }
+            val times = (6..24).map { String.format(Locale.getDefault(), "%02d:00", it) }
 
             ExposedDropdownMenuBox(
                 expanded = expanded,
@@ -227,7 +251,9 @@ fun SettingsScreen(
                             text = { Text(time) },
                             onClick = {
                                 onSelectedTimeChange(time) // Use the callback to update state
-                                Toast.makeText(context, "selectedTime $time.", Toast.LENGTH_SHORT).show()
+                                if (morningEnabled) {
+                                    scheduleNotification(context, time)
+                                }
                                 expanded = false
                             }
                         )
@@ -236,11 +262,26 @@ fun SettingsScreen(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-//            MedTimeRow(
-//                label = "일일보고",
-//                checked = morningEnabled,
-//                onCheckedChange = onMorningEnabledChange // Use the callback to update state
-//            )
+            MedTimeRow(
+                label = "일일보고",
+                checked = morningEnabled,
+                onCheckedChange = { isChecked ->
+                    onMorningEnabledChange(isChecked)
+                    if (isChecked) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+                                scheduleNotification(context, selectedTime)
+                            } else {
+                                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                            }
+                        } else {
+                            scheduleNotification(context, selectedTime)
+                        }
+                    } else {
+                        cancelNotification(context)
+                    }
+                }
+            )
         }
     }
 }
@@ -263,11 +304,10 @@ fun MedTimeRow(label: String, checked: Boolean, onCheckedChange: (Boolean) -> Un
 
 // 변경사항을 SharedPreferences에 저장하는 함수
 fun saveSettings(prefs: SharedPreferences, medName: String?, medNickName: String?, morningEnabled: Boolean, selectedTime: String?) {
-    with(prefs.edit()) {
+    prefs.edit {
         putString("med_name", medName)
         putString("med_nick_name", medNickName)
         putBoolean("daily_report_enabled", morningEnabled)
         putString("notification_time", selectedTime) // selectedTime도 함께 저장
-        apply()
     }
 }
