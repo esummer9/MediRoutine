@@ -46,14 +46,14 @@ object NotificationHelper {
         val drugActionCount = dbHelper.getDrugTodayCount()
 
         val intent = Intent(context, NotificationActionReceiver::class.java).apply {
-            action = "com.ediapp.m1routine.ACTION_TAKE_MEDICINE"
+            action = "ACTION_TAKE_MEDICINE"
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
 
         val pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
 
         val deleteIntent = Intent(context, NotificationActionReceiver::class.java).apply {
-            action = "com.ediapp.m1routine.ACTION_NOTIFICATION_DISMISSED"
+            action = "ACTION_NOTIFICATION_DISMISSED"
         }
         val deletePendingIntent = PendingIntent.getBroadcast(context, 1, deleteIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
 

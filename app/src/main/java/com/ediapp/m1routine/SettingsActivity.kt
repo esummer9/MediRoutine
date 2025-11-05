@@ -35,6 +35,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -223,7 +224,29 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
 
-            Text(text = "시간설정", fontSize = 20.sp)
+            Text(text = "알림설정", fontSize = 20.sp)
+
+            Spacer(modifier = Modifier.height(16.dp))
+            MedTimeRow(
+                label = "알림사용",
+                checked = morningEnabled,
+                onCheckedChange = { isChecked ->
+                    onMorningEnabledChange(isChecked)
+                    if (isChecked) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+                                scheduleNotification(context, selectedTime)
+                            } else {
+                                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                            }
+                        } else {
+                            scheduleNotification(context, selectedTime)
+                        }
+                    } else {
+                        cancelNotification(context)
+                    }
+                }
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -261,27 +284,7 @@ fun SettingsScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-            MedTimeRow(
-                label = "일일보고",
-                checked = morningEnabled,
-                onCheckedChange = { isChecked ->
-                    onMorningEnabledChange(isChecked)
-                    if (isChecked) {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                            if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
-                                scheduleNotification(context, selectedTime)
-                            } else {
-                                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                            }
-                        } else {
-                            scheduleNotification(context, selectedTime)
-                        }
-                    } else {
-                        cancelNotification(context)
-                    }
-                }
-            )
+
         }
     }
 }
@@ -298,7 +301,15 @@ fun MedTimeRow(label: String, checked: Boolean, onCheckedChange: (Boolean) -> Un
 
         ) {
         Text(text = label, fontSize = 16.sp)
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
+        Switch(checked = checked, onCheckedChange = onCheckedChange,
+            colors = SwitchDefaults.colors(
+            // (2) thumbColors 인스턴스 사용
+            // Switch가 'On' 상태일 때의 핸들(thumb) 색상 설정
+            checkedThumbColor = Color.White
+
+            // 참고: 'Off' 상태일 때의 핸들 색상도 흰색으로 하려면:
+            // uncheckedThumbColor = Color.White
+        ))
     }
 }
 

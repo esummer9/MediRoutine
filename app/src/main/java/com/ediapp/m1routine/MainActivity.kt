@@ -127,7 +127,7 @@ class MainActivity : ComponentActivity() {
         }
 
         createNotificationChannel()
-
+        NotificationHelper.showDailyCheckNotification(this)
         setContent {
             MyApplicationTheme {
                 MyApplicationApp(showAnimation = showAnimation.value) {
@@ -144,7 +144,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
-        if (intent?.action == "com.ediapp.m1routine.ACTION_TAKE_MEDICINE") {
+        if (intent?.action == "ACTION_TAKE_MEDICINE") {
             showAnimation.value = true
             val dbHelper = DatabaseHelper(this)
             dbHelper.addDrugAction()
