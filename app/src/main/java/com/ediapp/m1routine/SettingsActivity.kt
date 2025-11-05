@@ -64,6 +64,13 @@ class SettingsActivity : ComponentActivity() {
     private var morningEnabled by mutableStateOf(false)
     private var selectedTime by mutableStateOf("08:00")
 
+    private val requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
+        if (isGranted) {
+            scheduleNotification(this, selectedTime)
+        } else {
+            Toast.makeText(this, "알림 권한이 필요합니다.", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
