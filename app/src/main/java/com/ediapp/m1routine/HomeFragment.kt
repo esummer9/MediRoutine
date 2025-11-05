@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -191,12 +192,40 @@ fun HomeFragment(showAnimationFromNotification: Boolean = false, onAnimationCons
                     }
                 }
             }
+            Column(modifier = Modifier.padding(10.dp)) {
+                // 최근 30일 스퀘어 차트
+                Text(
+                    text = "Latest 30 day",
+                    fontSize = 20.sp,
+                    color = Color.Black
+                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(10.dp)
+                ) {
+                    (1..15).forEach { day ->
+
+                        val color = if (day % 5 == 0) Color.LightGray else Color(0xFF00668B)
+                        Box(
+                            modifier = Modifier
+                                .width(20.dp)
+                                .height(20.dp)
+                                .padding(2.dp)
+                                .background(color = color)
+                        )
+
+                    }
+                }
+
+
+            }
 
             Spacer(
                 modifier = Modifier
                     .padding(vertical = 10.dp, horizontal = 10.dp)
                     .fillMaxWidth()
-                    .height(1.dp)
+                    .height(1.5.dp)
                     .background(Color.LightGray)
             )
 
@@ -326,7 +355,7 @@ fun GridItem(modifier: Modifier = Modifier, index : Int = 1, title: String, font
                     val color = when (progress) {
                         in -100..59 -> Color.Red
                         in 60..89 -> Color.Blue
-                        else -> Color(0xFF00668B)
+                        else -> Color(0x0081C784)
                     }
                     CircularProgressIndicator(
                         progress = progress.toFloat() / maxProgress,
@@ -396,7 +425,7 @@ fun WeekCalendarView(actions: List<Action>) {
                     }
                     val isTaken = actions.any { it.actRegisteredAt?.startsWith(calendarDay.fullDate) == true }
                     val backgroundColor = when {
-                        isTaken -> Color.LightGray
+                        isTaken -> Color(0xFF00668B)
                         else -> Color.Transparent
                     }
 
@@ -416,7 +445,7 @@ fun WeekCalendarView(actions: List<Action>) {
                             fontWeight = if (calendarDay.fullDate != today) FontWeight.Normal else FontWeight.Bold,
                             fontSize = if (calendarDay.fullDate != today) 18.sp else 19.sp,
                             fontStyle = if (calendarDay.fullDate != today) FontStyle.Italic else FontStyle.Normal,
-                            color = color
+                            color =  if (isTaken) Color.White else Color.DarkGray
                         )
                     }
                 }

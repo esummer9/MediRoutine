@@ -307,12 +307,6 @@ fun CalendarView(currentDate: Calendar, highlightedDays: List<Int>, onDayClick: 
             items(days.size) { dayIndex ->
                 val day = days[dayIndex]
                 val isHighlighted = highlightedDays.contains(day)
-                val dayOfWeek = (firstDayOfWeek + dayIndex) % 7
-                val textColor = when (dayOfWeek) {
-                    0 -> Color.Red    // Sunday
-                    6 -> Color.Blue   // Saturday
-                    else -> Color.Unspecified
-                }
 
                 val cellDate = (currentDate.clone() as Calendar).apply {
                     set(Calendar.DAY_OF_MONTH, day)
@@ -322,6 +316,11 @@ fun CalendarView(currentDate: Calendar, highlightedDays: List<Int>, onDayClick: 
                     set(Calendar.MILLISECOND, 0)
                 }
                 val isFuture = cellDate.after(today)
+                var textColor = Color.DarkGray
+                if (isFuture)
+                    textColor = Color.LightGray
+                else if (isHighlighted)
+                    textColor = Color.White
 
                 Box(
                     modifier = Modifier
@@ -329,7 +328,7 @@ fun CalendarView(currentDate: Calendar, highlightedDays: List<Int>, onDayClick: 
                         .padding(3.dp)
                         .clickable(enabled = !isFuture) { onDayClick(day) }
                         .background(
-                            color = if (isHighlighted) Color.LightGray else Color.Transparent,
+                            color = if (isHighlighted) Color(0xFF008080) else Color.Transparent,
                             shape = RoundedCornerShape(3.dp)
                         )
                         .padding(if (isHighlighted) 10.dp else 5.dp),
@@ -338,7 +337,7 @@ fun CalendarView(currentDate: Calendar, highlightedDays: List<Int>, onDayClick: 
                     Text(
                         text = day.toString(),
                         fontWeight = FontWeight.Bold,
-                        color = if (isFuture) Color.LightGray else textColor
+                        color = textColor
                     )
                 }
             }
