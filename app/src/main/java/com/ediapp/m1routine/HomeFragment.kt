@@ -1,6 +1,7 @@
 package com.ediapp.m1routine
 
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.infiniteRepeatable
@@ -75,6 +76,8 @@ fun HomeFragment(showAnimationFromNotification: Boolean = false, onAnimationCons
 
     val monthFormat = SimpleDateFormat("yyyy-MM", Locale.getDefault())
     var actions by remember { mutableStateOf(dbHelper.getDrugListsByMonthOrWeek(monthOrWeek = 2, monthFormat.format(Date()))) }
+    var actionsByDate by remember { mutableStateOf<Map<String, List<Action>>>(emptyMap()) }
+
 
     var showAnimation by remember { mutableStateOf(false) }
     val size = remember { Animatable(20f) }
@@ -102,6 +105,10 @@ fun HomeFragment(showAnimationFromNotification: Boolean = false, onAnimationCons
                 val start = getFourteenDaysAgoDate(-14)
                 actions =
                     dbHelper.getDrugListsByMonthOrWeek(monthOrWeek = 2, sdf.format(start))
+
+                val sixtyDaysAgo = getSixtyDaysAgoDate(-60)
+                actionsByDate = dbHelper.getDrugActionsByDateRange(sdf.format(sixtyDaysAgo))
+
                 progress = dbHelper.getDrugTodayCount()
                 updateAchievementRate()
             }
@@ -192,33 +199,11 @@ fun HomeFragment(showAnimationFromNotification: Boolean = false, onAnimationCons
                     }
                 }
             }
-            Column(modifier = Modifier.padding(10.dp)) {
-                // 최근 30일 스퀘어 차트
-                Text(
-                    text = "Latest 30 day",
-                    fontSize = 20.sp,
-                    color = Color.Black
-                )
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(10.dp)
-                ) {
-                    (1..15).forEach { day ->
 
-                        val color = if (day % 5 == 0) Color.LightGray else Color(0xFF00668B)
-                        Box(
-                            modifier = Modifier
-                                .width(20.dp)
-                                .height(20.dp)
-                                .padding(2.dp)
-                                .background(color = color)
-                        )
-
-                    }
-                }
-
-
+            Column(modifier = Modifier.padding(20.dp)) {
+                val sixtyDaysAgo = getSixtyDaysAgoDate(-60)
+                actionsByDate = dbHelper.getDrugActionsByDateRange(sdf.format(sixtyDaysAgo))
+                Latest30day(actionsByDate)
             }
 
             Spacer(
@@ -290,6 +275,51 @@ fun HomeFragment(showAnimationFromNotification: Boolean = false, onAnimationCons
     }
 }
 
+private fun getSixtyDaysAgoDate(days: Int): Date {
+    val calendar = Calendar.getInstance()
+    calendar.add(Calendar.DAY_OF_YEAR, days)
+    return calendar.time
+}
+
+
+@Composable
+fun Latest30day(actionsByDate: Map<String, List<Action>>) {
+    Text(
+        text = "Latest 30 day",
+        fontSize = 20.sp,
+        color = Color.Black
+    )
+    (0..1).forEach { row ->
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(5.dp)
+        ) {
+            val startDate = Calendar.getInstance()
+            startDate.time = Date()
+            startDate.add(Calendar.DAY_OF_MONTH, if(row == 1) -15 else -30)
+
+            (row*15..(row*15) + 14).forEach { day ->
+                startDate.add(Calendar.DAY_OF_MONTH, 1)
+                var color = Color.Unspecified
+                if (actionsByDate.containsKey(sdf.format(startDate.time)))
+                    color = Color(0xFF00668B)
+                else
+                    color = Color.LightGray
+
+                Log.d("startDate", sdf.format(startDate.time) +"|"+ color)
+
+                Box(
+                    modifier = Modifier
+                        .width(28.dp)
+                        .height(20.dp)
+                        .padding(1.dp)
+                        .background(color = color)
+                )
+            }
+        }
+    }
+}
 
 @Composable
 fun GridItem(modifier: Modifier = Modifier, index : Int = 1, title: String, fontSize: TextUnit = 18.sp, progress: Int = 0, maxProgress: Int = 100, days: Long = 0, onDrugTaken: () -> Unit = {}) {
@@ -355,7 +385,7 @@ fun GridItem(modifier: Modifier = Modifier, index : Int = 1, title: String, font
                     val color = when (progress) {
                         in -100..59 -> Color.Red
                         in 60..89 -> Color.Blue
-                        else -> Color(0x0081C784)
+                        else -> Color(0xFF00668B)
                     }
                     CircularProgressIndicator(
                         progress = progress.toFloat() / maxProgress,
@@ -425,7 +455,7 @@ fun WeekCalendarView(actions: List<Action>) {
                     }
                     val isTaken = actions.any { it.actRegisteredAt?.startsWith(calendarDay.fullDate) == true }
                     val backgroundColor = when {
-                        isTaken -> Color(0xFF00668B)
+                        isTaken -> Color.LightGray
                         else -> Color.Transparent
                     }
 
@@ -445,7 +475,7 @@ fun WeekCalendarView(actions: List<Action>) {
                             fontWeight = if (calendarDay.fullDate != today) FontWeight.Normal else FontWeight.Bold,
                             fontSize = if (calendarDay.fullDate != today) 18.sp else 19.sp,
                             fontStyle = if (calendarDay.fullDate != today) FontStyle.Italic else FontStyle.Normal,
-                            color =  if (isTaken) Color.White else Color.DarkGray
+                            color = color
                         )
                     }
                 }

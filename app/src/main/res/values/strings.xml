@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">A1-Routine</string>
+    <string name="app_name">A1루틴</string>
     <string name="tab_home">홈</string>
     <string name="tab_status">현황</string>
     <string name="tab_refill">리필관리</string>

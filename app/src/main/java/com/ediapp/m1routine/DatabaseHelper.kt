@@ -152,6 +152,43 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         return actions
     }
 
+    fun getDrugActionsByDateRange(startDate: String): Map<String, List<Action>> {
+        val actionsByDate = mutableMapOf<String, MutableList<Action>>()
+        val db = this.readableDatabase
+        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+
+        val sql = "SELECT * FROM $TABLE_NAME WHERE $COL_ACT_TYPE = 'drug' AND date($COL_ACT_REGISTERED_AT) >= date('$startDate') AND $COL_ACT_DELETED_AT IS NULL ORDER BY $COL_ACT_REGISTERED_AT DESC"
+
+        Log.d("DatabaseHelper", "SQL: $sql")
+
+        val cursor = db.rawQuery(sql, null)
+        if (cursor.moveToFirst()) {
+            do {
+                val action = Action(
+                    id = cursor.getLong(cursor.getColumnIndexOrThrow(COL_ID)),
+                    actType = cursor.getString(cursor.getColumnIndexOrThrow(COL_ACT_TYPE)),
+                    actKey = cursor.getString(cursor.getColumnIndexOrThrow(COL_ACT_KEY)),
+                    actValue = cursor.getInt(cursor.getColumnIndexOrThrow(COL_ACT_VALUE)),
+                    actRegisteredAt = cursor.getString(cursor.getColumnIndexOrThrow(COL_ACT_REGISTERED_AT)),
+                    actCreatedAt = cursor.getString(cursor.getColumnIndexOrThrow(COL_ACT_CREATED_AT)),
+                    actDeletedAt = cursor.getString(cursor.getColumnIndexOrThrow(COL_ACT_DELETED_AT)),
+                    actMessage = cursor.getString(cursor.getColumnIndexOrThrow(COL_ACT_MESSAGE)),
+                    actStatus = cursor.getString(cursor.getColumnIndexOrThrow(COL_ACT_STATUS)),
+                    actRef = cursor.getString(cursor.getColumnIndexOrThrow(COL_ACT_REF))
+                )
+                val date = sdf.format(sdf.parse(action.actRegisteredAt!!)!!)
+                if (actionsByDate.containsKey(date)) {
+                    actionsByDate[date]?.add(action)
+                } else {
+                    actionsByDate[date] = mutableListOf(action)
+                }
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        db.close()
+        return actionsByDate
+    }
+
     fun deleteDrugAction(id: Long) {
         val db = this.writableDatabase
         val values = ContentValues()
