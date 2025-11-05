@@ -1,5 +1,9 @@
 # MediRoutine
 
+## 앱등록
+  https://play.google.com/apps/internaltest/4701188224483015386
+
+
 ## 통계정보 활용
 <!--  -->
 | 제목            | 참조 |
