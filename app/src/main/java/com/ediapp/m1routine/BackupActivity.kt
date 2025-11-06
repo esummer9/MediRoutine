@@ -1,50 +1,41 @@
 package com.ediapp.m1routine
 
-import android.Manifest
 import android.app.Activity
 import android.content.Context
-import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import com.ediapp.m1routine.ui.theme.MyApplicationTheme
-import java.util.Locale
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.tasks.Task
 
 class BackupActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -60,14 +51,27 @@ class BackupActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BackupScreen(
-
-) {
+fun BackupScreen() {
     val context = LocalContext.current
     // SharedPreferences 인스턴스 가져오기 (MainActivity와 동일한 키 사용)
     val prefs = remember { context.getSharedPreferences("MediRoutine_prefs", Context.MODE_PRIVATE) }
 
+    // Google Sign-In 옵션 설정
+    val gso = remember {
+        GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken("YOUR_WEB_CLIENT_ID.apps.googleusercontent.com")
+            .requestEmail()
+            .build()
+    }
+    val googleSignInClient = remember { GoogleSignIn.getClient(context, gso) }
 
+    val signInLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult(),
+        onResult = { result ->
+            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+            handleSignInResult(task, context)
+        }
+    )
 
     Scaffold(
         topBar = {
@@ -79,9 +83,6 @@ fun BackupScreen(
                 ),
                 navigationIcon = {
                     IconButton(onClick = {
-                        // 변경사항 저장 로직 호출
-//                        saveSettings(prefs, medName, medNickName, morningEnabled, selectedTime)
-                        // Activity 종료
                         (context as? Activity)?.finish()
                     }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
@@ -96,9 +97,27 @@ fun BackupScreen(
                 .padding(paddingValues)
                 .padding(16.dp)
         ) {
-
+            Button(onClick = { 
+                val signInIntent = googleSignInClient.signInIntent
+                signInLauncher.launch(signInIntent)
+            }) {
+                Text(text = "Google 로그인")
+            }
             Spacer(modifier = Modifier.height(16.dp))
 
         }
+    }
+}
+
+private fun handleSignInResult(completedTask: Task<GoogleSignInAccount>, context: Context) {
+    try {
+        val account = completedTask.getResult(ApiException::class.java)
+        // 로그인 성공
+        Toast.makeText(context, "Google 로그인 성공: ${account.displayName}", Toast.LENGTH_SHORT).show()
+        // TODO: 로그인 성공 후 백업/복원 로직 구현
+    } catch (e: ApiException) {
+        // 로그인 실패
+        Log.w("BackupActivity", "signInResult:failed code=" + e.statusCode)
+        Toast.makeText(context, "Google 로그인 실패", Toast.LENGTH_SHORT).show()
     }
 }

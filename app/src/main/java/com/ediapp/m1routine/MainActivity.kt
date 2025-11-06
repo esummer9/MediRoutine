@@ -66,6 +66,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        val andorid_id = getAndroidId(this)
+
+        Log.d(TAG, "Android ID: $andorid_id")
+
         val configSettings = remoteConfigSettings {
             minimumFetchIntervalInSeconds = 3600
         }
@@ -320,11 +324,18 @@ fun MyApplicationApp(showAnimation: Boolean, onAnimationConsumed: () -> Unit) {
                         }) {
                             Icon(Icons.Filled.Settings, contentDescription = "Settings", tint = Color.White)
                         }
-                        IconButton(onClick = { 
-                            val intent = Intent(context, BackupActivity::class.java)
-                            context.startActivity(intent)
-                        }) {
-                            Icon(Icons.Filled.CheckCircle, contentDescription = "Backup", tint = Color.White)
+
+                        if (!hasUsim(context)) {
+                            IconButton(onClick = {
+                                val intent = Intent(context, BackupActivity::class.java)
+                                context.startActivity(intent)
+                            }) {
+                                Icon(
+                                    Icons.Filled.CheckCircle,
+                                    contentDescription = "Backup",
+                                    tint = Color.White
+                                )
+                            }
                         }
                     }
                 )
