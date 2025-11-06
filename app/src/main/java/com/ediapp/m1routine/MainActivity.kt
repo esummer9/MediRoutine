@@ -320,7 +320,10 @@ fun MyApplicationApp(showAnimation: Boolean, onAnimationConsumed: () -> Unit) {
                         }) {
                             Icon(Icons.Filled.Settings, contentDescription = "Settings", tint = Color.White)
                         }
-                        IconButton(onClick = { /* 백업 기능 실행 로직 */ }) {
+                        IconButton(onClick = { 
+                            val intent = Intent(context, BackupActivity::class.java)
+                            context.startActivity(intent)
+                        }) {
                             Icon(Icons.Filled.CheckCircle, contentDescription = "Backup", tint = Color.White)
                         }
                     }
