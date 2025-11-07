@@ -16,10 +16,15 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.launch
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DateRange
@@ -43,6 +48,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -281,10 +287,24 @@ fun MyApplicationApp(showAnimation: Boolean, onAnimationConsumed: () -> Unit) {
         )
     }
 
+    val destinations = remember { AppDestinations.entries.toList() }
     var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.HOME) }
+    var currentPage by remember { mutableStateOf(0) }
+    val pagerState = rememberPagerState(pageCount = { destinations.size })
+    val coroutineScope = rememberCoroutineScope()
 
-    val navigateTo: (AppDestinations) -> Unit = {
-        newDestination ->
+    // Synchronize the pager's current page with the selected item in NavigationSuiteScaffold.
+    // LaunchedEffect will run when the pager's currentPage changes.
+    LaunchedEffect(pagerState.currentPage) {
+
+        // you would do it here. For this example, we'll let the pager drive the UI.
+    }
+
+    val navigateTo: (AppDestinations) -> Unit = { newDestination ->
+        val index = destinations.indexOf(newDestination)
+        if (index != -1) {
+            currentPage = index // Update pager page
+        }
                 if(currentDestination == AppDestinations.HELPS) {
                 }
                 currentDestination = newDestination
@@ -292,17 +312,20 @@ fun MyApplicationApp(showAnimation: Boolean, onAnimationConsumed: () -> Unit) {
 
     NavigationSuiteScaffold(
         navigationSuiteItems = {
-            AppDestinations.entries.forEach {
+            destinations.forEachIndexed {index, destination ->
                 item(
                     icon = {
                         Icon(
-                            it.icon,
-                            contentDescription = stringResource(it.label)
+                            destination.icon,
+                            contentDescription = stringResource(destination.label)
                         )
                     },
-                    label = { Text(stringResource(it.label)) },
-                    selected = it == currentDestination,
-                    onClick = { navigateTo(it) }
+                    label = { Text(stringResource(destination.label)) },
+                    selected = pagerState.currentPage == index,
+                    onClick = { coroutineScope.launch {
+                            pagerState.animateScrollToPage(index)
+                        }
+                    }
                 )
             }
         }
@@ -341,8 +364,15 @@ fun MyApplicationApp(showAnimation: Boolean, onAnimationConsumed: () -> Unit) {
                 )
             }
         ) { innerPadding ->
-            Box(modifier = Modifier.padding(innerPadding)) {
-                when (currentDestination) {
+            // HorizontalPager handles the swipe gestures and displays the content for each page.
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+            ) { page ->
+                // Display the correct Composable based on the page index.
+                when (destinations[page]) {
                     AppDestinations.HOME -> HomeFragment(showAnimation, onAnimationConsumed)
                     AppDestinations.LISTS -> ListFragment()
                     AppDestinations.HELPS -> HelpsFragment()
@@ -361,3 +391,5 @@ enum class AppDestinations(
     LISTS(R.string.tab_status, Icons.Default.DateRange, Color(0xFF008080)),
     HELPS(R.string.tab_helps, Icons.Default.Info, Color(0xFF00BCD4)),
 }
+
+

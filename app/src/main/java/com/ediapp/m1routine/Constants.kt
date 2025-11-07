@@ -17,6 +17,9 @@ import com.ediapp.m1routine.model.SharedPreferenceData
 val dayNames = listOf("일", "월", "화", "수", "목", "금", "토")
 val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
+val SHARED_PREFERENCES_NAME = "my_prefs"
+
+
 enum class MonthOrWeek {
     MONTH,
     WEEK

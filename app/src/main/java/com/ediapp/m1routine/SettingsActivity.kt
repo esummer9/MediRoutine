@@ -58,7 +58,6 @@ import java.util.Locale
 
 class SettingsActivity : ComponentActivity() {
 
-    private val prefs: SharedPreferences = getSharedPreferences(SHARED_PREFERENCES_NAME, MODE_PRIVATE)
     private var medName by mutableStateOf("")
     private var medNickName by mutableStateOf("")
     private var notificationEnabled by mutableStateOf(false)
@@ -75,6 +74,7 @@ class SettingsActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        val prefs: SharedPreferences = getSharedPreferences(SHARED_PREFERENCES_NAME, MODE_PRIVATE)
         val pref = getSharedPref(prefs)
         medName = pref.medName
         medNickName = pref.medNickName
@@ -102,6 +102,7 @@ class SettingsActivity : ComponentActivity() {
     }
 
     override fun onStop() {
+        val prefs: SharedPreferences = getSharedPreferences(SHARED_PREFERENCES_NAME, MODE_PRIVATE)
         saveSettings(prefs, medName, medNickName, notificationEnabled, selectedTime)
         super.onStop()
     }

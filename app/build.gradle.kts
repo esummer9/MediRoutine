@@ -69,4 +69,8 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-auth") // 예를 들어 Firebase 인증도 추가할 경우
     implementation("com.google.android.gms:play-services-auth:21.2.0")
+    implementation("com.google.accompanist:accompanist-pager:0.30.1")
+// Use the latest version
+    implementation("com.google.accompanist:accompanist-permissions:0.30.1")
+// If not already added
 }
