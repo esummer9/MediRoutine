@@ -58,10 +58,10 @@ import java.util.Locale
 
 class SettingsActivity : ComponentActivity() {
 
-    private lateinit var prefs: SharedPreferences
+    private val prefs: SharedPreferences = getSharedPreferences(SHARED_PREFERENCES_NAME, MODE_PRIVATE)
     private var medName by mutableStateOf("")
     private var medNickName by mutableStateOf("")
-    private var morningEnabled by mutableStateOf(false)
+    private var notificationEnabled by mutableStateOf(false)
     private var selectedTime by mutableStateOf("08:00")
 
     private val requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
@@ -75,25 +75,23 @@ class SettingsActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        prefs = getSharedPreferences("MediRoutine_prefs", MODE_PRIVATE)
-
-        // Load initial settings from SharedPreferences
-        medName = prefs.getString("med_name", "") ?: ""
-        medNickName = prefs.getString("med_nick_name", "") ?: ""
-        morningEnabled = prefs.getBoolean("daily_report_enabled", false)
-        selectedTime = prefs.getString("notification_time", "08:00") ?: "08:00"
+        val pref = getSharedPref(prefs)
+        medName = pref.medName
+        medNickName = pref.medNickName
+        notificationEnabled = pref.notificationEnabled
+        selectedTime = pref.notificationTime
 
         setContent {
             MyApplicationTheme {
                 SettingsScreen(
                     medName = medName,
                     medNickName = medNickName,
-                    morningEnabled = morningEnabled,
+                    morningEnabled = notificationEnabled,
                     selectedTime = selectedTime,
                     onMedNameChange = { medName = it },
                     onMedNickNameChange = { medNickName = it },
-                    onMorningEnabledChange = { isEnabled ->
-                        morningEnabled = isEnabled
+                    onAlarmEnabledChange = { isEnabled ->
+                        notificationEnabled = isEnabled
                     },
                     onSelectedTimeChange = { time ->
                         selectedTime = time
@@ -104,7 +102,7 @@ class SettingsActivity : ComponentActivity() {
     }
 
     override fun onStop() {
-        saveSettings(prefs, medName, medNickName, morningEnabled, selectedTime)
+        saveSettings(prefs, medName, medNickName, notificationEnabled, selectedTime)
         super.onStop()
     }
 }
@@ -163,12 +161,12 @@ fun SettingsScreen(
     selectedTime: String,
     onMedNameChange: (String) -> Unit,
     onMedNickNameChange: (String) -> Unit,
-    onMorningEnabledChange: (Boolean) -> Unit,
+    onAlarmEnabledChange: (Boolean) -> Unit,
     onSelectedTimeChange: (String) -> Unit
 ) {
     val context = LocalContext.current
     // SharedPreferences 인스턴스 가져오기 (MainActivity와 동일한 키 사용)
-    val prefs = remember { context.getSharedPreferences("MediRoutine_prefs", Context.MODE_PRIVATE) }
+    val prefs = remember { context.getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE) }
 
     val requestPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
@@ -177,7 +175,7 @@ fun SettingsScreen(
                 scheduleNotification(context, selectedTime)
                 Toast.makeText(context, "알림이 설정되었습니다.", Toast.LENGTH_SHORT).show()
             } else {
-                onMorningEnabledChange(false) // Revert switch state
+                onAlarmEnabledChange(false) // Revert switch state
                 Toast.makeText(context, "알림 권한이 없어 알림을 설정할 수 없습니다.", Toast.LENGTH_LONG).show()
             }
         }
@@ -238,7 +236,7 @@ fun SettingsScreen(
                 label = "알림사용",
                 checked = morningEnabled,
                 onCheckedChange = { isChecked ->
-                    onMorningEnabledChange(isChecked)
+                    onAlarmEnabledChange(isChecked)
                     if (isChecked) {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                             if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {

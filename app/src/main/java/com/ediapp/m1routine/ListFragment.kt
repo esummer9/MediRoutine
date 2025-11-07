@@ -83,7 +83,7 @@ fun ListFragment() {
 
     val monthFormat = remember { SimpleDateFormat("yyyy년 MM월", Locale.KOREAN) }
     val monthFormatForQuery = remember { SimpleDateFormat("yyyy-MM", Locale.getDefault()) }
-    val prefs = context.getSharedPreferences("MediRoutine_prefs", Context.MODE_PRIVATE)
+    val prefs = context.getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
 
     fun refetchActions() {
         val monthStr = monthFormatForQuery.format(currentDate.time)

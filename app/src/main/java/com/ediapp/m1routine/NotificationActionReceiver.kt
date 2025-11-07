@@ -16,7 +16,7 @@ class NotificationActionReceiver : BroadcastReceiver() {
                 val dbHelper = DatabaseHelper(context)
                 val newId = dbHelper.addDrugAction()
 
-                val prefs = context.getSharedPreferences("MediRoutine_prefs", Context.MODE_PRIVATE)
+                val prefs = context.getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
 
                 val medNickName = prefs.getString("med_nick_name", "") ?: ""
                 Toast

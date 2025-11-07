@@ -83,7 +83,7 @@ fun HomeFragment(showAnimationFromNotification: Boolean = false, onAnimationCons
     val size = remember { Animatable(20f) }
 
     // Get SharedPreferences instance
-    val prefs = context.getSharedPreferences("MediRoutine_prefs", Context.MODE_PRIVATE)
+    val prefs = context.getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
 
     fun updateAchievementRate() {
         val (startDate, drugCount) = dbHelper.getAchievementStats()

@@ -116,7 +116,7 @@ class MainActivity : ComponentActivity() {
         val dbHelper = DatabaseHelper(this)
         dbHelper.writableDatabase
 
-        val sharedPref = getSharedPreferences("MediRoutine_prefs", Context.MODE_PRIVATE)
+        val sharedPref = getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
         if (!sharedPref.contains("med_name")) {
             with(sharedPref.edit()) {
                 putString("med_name", "**약")
