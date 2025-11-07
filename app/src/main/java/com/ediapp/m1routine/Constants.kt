@@ -6,11 +6,13 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import android.content.Context
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.telephony.TelephonyManager
 import androidx.core.content.ContextCompat
 
 import android.provider.Settings
+import com.ediapp.m1routine.model.SharedPreferenceData
 
 val dayNames = listOf("일", "월", "화", "수", "목", "금", "토")
 val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
@@ -47,4 +49,16 @@ fun hasUsim(context: Context): Boolean {
 
 fun getAndroidId(context: Context): String {
     return Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
+}
+
+
+fun getSharedPref(prefs: SharedPreferences) : SharedPreferenceData {
+
+    val data = SharedPreferenceData(
+        medName = prefs.getString("med_name", "")?:"",
+        medNickName = prefs.getString("med_nick_name", "")?:"" ,
+        notificationEnabled = prefs.getBoolean("daily_report_enabled", false),
+        notificationTime = prefs.getString("notification_time", "08:00")?:""
+    )
+    return data
 }
