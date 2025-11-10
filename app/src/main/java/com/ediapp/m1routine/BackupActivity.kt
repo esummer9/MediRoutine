@@ -25,7 +25,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -52,6 +55,9 @@ class BackupActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BackupScreen() {
+
+    var showButton by remember { mutableStateOf(false) }
+
     val context = LocalContext.current
     // SharedPreferences 인스턴스 가져오기 (MainActivity와 동일한 키 사용)
     val prefs = remember { context.getSharedPreferences("MediRoutine_prefs", Context.MODE_PRIVATE) }
@@ -97,11 +103,14 @@ fun BackupScreen() {
                 .padding(paddingValues)
                 .padding(16.dp)
         ) {
-            Button(onClick = { 
-                val signInIntent = googleSignInClient.signInIntent
-                signInLauncher.launch(signInIntent)
-            }) {
-                Text(text = "Google 로그인")
+            Text(text = "백업기능 개발 중 입니다.")
+            if(showButton) {
+                Button(onClick = {
+                    val signInIntent = googleSignInClient.signInIntent
+                    signInLauncher.launch(signInIntent)
+                }) {
+                    Text(text = "Google 로그인")
+                }
             }
             Spacer(modifier = Modifier.height(16.dp))
 

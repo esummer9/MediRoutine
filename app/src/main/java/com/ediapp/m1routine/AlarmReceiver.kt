@@ -4,6 +4,7 @@ package com.ediapp.m1routine
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -15,8 +16,9 @@ class AlarmReceiver : BroadcastReceiver() {
         val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         val dateString = dateFormat.format(today)
         val actKey = "drug-$dateString"
-
-        if (!dbHelper.isDrugExists(actKey)) {
+        val result = dbHelper.isDrugExists(actKey)
+        Log.d("AlarmReceiver", "isDrugExists: $result")
+        if (!result) {
             NotificationHelper.showDailyCheckNotification(context)
         }
     }

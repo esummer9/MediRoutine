@@ -96,11 +96,19 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
     fun isDrugExists(actKey: String): Boolean {
         val db = this.readableDatabase
-        val cursor = db.rawQuery("SELECT COUNT(*) FROM $TABLE_NAME WHERE $COL_ACT_KEY = ? AND $COL_ACT_DELETED_AT IS NULL", arrayOf(actKey))
-        val exists = if (cursor.moveToFirst()) cursor.getInt(0) > 0 else false
+        val sql = "SELECT COUNT(*) FROM $TABLE_NAME WHERE $COL_ACT_KEY = ? AND $COL_ACT_DELETED_AT IS NULL"
+
+        val cursor = db.rawQuery(sql, arrayOf(actKey))
+        var count= 0
+        if (cursor.moveToFirst()) {
+            count  = cursor.getInt(0)
+        }
+
+        Log.d("DatabaseHelper", "isDrugExists: $sql, $actKey, count=$count")
+
         cursor.close()
         db.close()
-        return exists
+        return count > 0
     }
 
 
@@ -123,7 +131,6 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         if (monthOrWeek == 2) {
             whereSql = "strftime('%Y-%m-%d', $COL_ACT_REGISTERED_AT) >= '$month'"
         }
-
 
         val sql = "SELECT * FROM $TABLE_NAME WHERE $whereSql AND $COL_ACT_DELETED_AT IS NULL ORDER BY $orderBy $orderDirection"
 
