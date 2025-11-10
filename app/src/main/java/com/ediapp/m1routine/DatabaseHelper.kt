@@ -233,4 +233,30 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
         return Pair(startDate, drugCount)
     }
+
+
+    fun getLatestStats(): Pair<Date?, Int> {
+        val db = this.readableDatabase
+        var startDate: Date? = null
+        var drugCount = 0
+
+        val sql = "SELECT max($COL_ACT_REGISTERED_AT) FROM $TABLE_NAME WHERE $COL_ACT_TYPE = 'drug' AND $COL_ACT_DELETED_AT IS NULL"
+
+        val startDateCursor = db.rawQuery(sql, null)
+        if (startDateCursor.moveToFirst()) {
+            val dateString = startDateCursor.getString(0)
+            if (dateString != null) {
+                try {
+                    startDate = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).parse(dateString)
+                } catch (e: ParseException) {
+                    Log.e("DatabaseHelper", "Error parsing date: $dateString", e)
+                }
+            }
+        }
+        startDateCursor.close()
+        db.close()
+
+        return Pair(startDate, drugCount)
+    }
+
 }

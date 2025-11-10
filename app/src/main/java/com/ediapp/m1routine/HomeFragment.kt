@@ -131,7 +131,7 @@ fun HomeFragment(showAnimationFromNotification: Boolean = false, onAnimationCons
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
-            Column(modifier = Modifier.weight(1.2f)) {
+            Column(modifier = Modifier.weight(1.1f)) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -285,7 +285,7 @@ private fun getSixtyDaysAgoDate(days: Int): Date {
 @Composable
 fun Latest30day(actionsByDate: Map<String, List<Action>>) {
     Text(
-        text = "Latest 30 day",
+        text = "최근 30 일",
         fontSize = 20.sp,
         color = Color.Black
     )
@@ -293,7 +293,8 @@ fun Latest30day(actionsByDate: Map<String, List<Action>>) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(5.dp)
+                .padding(5.dp),
+            horizontalArrangement = Arrangement.Center
         ) {
             val startDate = Calendar.getInstance()
             startDate.time = Date()
@@ -395,7 +396,7 @@ fun GridItem(modifier: Modifier = Modifier, index : Int = 1, title: String, font
                     )
                     Text(
                         text = "$progress%",
-                        fontSize = 26.sp,
+                        fontSize = 24.sp,
                         color = Color.Black
                     )
                 }
