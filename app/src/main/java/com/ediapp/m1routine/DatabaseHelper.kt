@@ -104,7 +104,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             count  = cursor.getInt(0)
         }
 
-        Log.d("DatabaseHelper", "isDrugExists: $sql, $actKey, count=$count")
+        Log.d("DatabaseHelper", "isDrugExists: $sql, $actKey, count=$count | ${count > 0}")
 
         cursor.close()
         db.close()
